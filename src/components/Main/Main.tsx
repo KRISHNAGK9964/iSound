@@ -39,14 +39,17 @@ const Main = (props: Props) => {
             setPlaying(false);
             return 30000;
           } else {
-            let nt = old + 200 * speed;
+            let cspeed = speed;
+            // setSpeed(old => {cspeed = old; return old;})
+            let nt = old + 200 * cspeed;
+            // console.log(cspeed);
             timeLineTracks.map((tt, index) => {
-              // console.log(nt, audioRef.current[index]);
               if (tt.startTime <= nt && nt <= tt.startTime + tt.duration) {
                 audioRef.current[index].play();
               }
               if (nt >= tt.startTime + tt.duration) {
                 audioRef.current[index].pause();
+                audioRef.current[index].currentTime = 0;
               }
               return null;
             });
@@ -275,7 +278,7 @@ const Main = (props: Props) => {
                 duration: <span>{Math.round(track.duration / 1000)}s</span>
               </p>
               <p>
-                name: <span>{"Trumpet"}</span>
+                name: <span>{track.title}</span>
               </p>
               <div className="w-1 h-6 absolute bg-systembgDark-100 left-0 top-[50%] rounded-md translate-y-2"></div>
             </div>
@@ -284,10 +287,10 @@ const Main = (props: Props) => {
       </div>
       {/* controls of the TimeLine i.e time, playback speed, play/pause button */}
       <div className="flex justify-between p-2 select-none">
-        <div>
+        <div className="flex-1">
           Time: {s < 10 ? `0${s}` : s}:{ms < 10 ? `0${ms}` : ms}/30:00
         </div>
-        <div className="cursor-pointer">
+        <div className="flex-1 cursor-pointer">
           {!playing ? (
             <PlayIcon onClick={handlePlayPause} className="w-6 h-6" />
           ) : (
