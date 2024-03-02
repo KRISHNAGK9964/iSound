@@ -3,7 +3,7 @@
  */
 export const tracks = [
   {
-    color: "systemTintLight-green",
+    color: "#34C759FF",
     title: "Piano",
     duration: 14000,
     source: "/sounds/piano.mp3",
@@ -11,7 +11,7 @@ export const tracks = [
     endTime: 14000,
   },
   {
-    color: "systemTintLight-red",
+    color: "#FF3B30FF",
     title: "Drums",
     duration: 6000,
     source: "/sounds/Drums.mp3",
@@ -19,7 +19,7 @@ export const tracks = [
     endTime: 6000,
   },
   {
-    color: "systemTintLight-blue",
+    color: "#007AFFFF",
     title: "Guitar",
     duration: 9000,
     source: "/sounds/guitar.mp3",
@@ -27,7 +27,7 @@ export const tracks = [
     endTime: 9000,
   },
   {
-    color: "systemTintLight-yellow",
+    color: "#FFCC00FF",
     title: "Trumpet",
     duration: 21000,
     source: "/sounds/trumpet.mp3",

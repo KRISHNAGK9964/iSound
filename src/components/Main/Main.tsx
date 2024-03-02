@@ -66,7 +66,7 @@ const Main = (props: Props) => {
     return () => {
       clearInterval(intervalID);
     };
-  }, [playing]);
+  }, [playing,speed]);
 
   /**
    * @function the following function toggles the play and pause state of the TimeLine Track.
@@ -140,6 +140,13 @@ const Main = (props: Props) => {
         if (idx == index) {
           tt.startTime =
             (newLeft / wrapperRef?.current[index].offsetWidth) * 30000;
+            if (
+              tt.startTime <= time &&
+              time <= tt.startTime + tt.duration
+            ) {
+              audioRef.current[index].currentTime =
+                (time - tt.startTime) / 1000;
+            }
         }
         return tt;
       });
@@ -259,7 +266,8 @@ const Main = (props: Props) => {
               })
             }
             key={index}
-            className={`group hover:scale-110 transition-all cursor-pointer select-none max-w-80 rounded-md bg-${track.color} p-2 flex-1 text-center `}
+            style={{ backgroundColor: track.color }}
+            className={`group hover:scale-110 transition-all cursor-pointer select-none max-w-80 rounded-md p-2 flex-1 text-center `}
           >
             {track.title}
             <div className="flex gap-2 transition-all z-[5] min-w-max absolute bottom-[120%] left-0  scale-0 rounded bg-systemGbgDark-100  p-1 text-xs  text-white group-hover:scale-100">
@@ -331,8 +339,9 @@ const Main = (props: Props) => {
                 width: `${(track.duration * 100) / 30000}%`,
                 position: "relative",
                 left: `${(track.startTime * 100) / 30000}%`,
+                backgroundColor: track.color
               }}
-              className={`group relative flex items-center cursor-pointer rounded-md bg-${track.color} p-2 flex-1 text-center`}
+              className={`group relative flex items-center cursor-pointer rounded-md  p-2 flex-1 text-center`}
             >
               <p className="flex-1">{track.title}</p>
               <audio

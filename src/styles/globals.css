@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  --systemTintLight-red : #FF3B30FF;
+  --systemTintLight-green : #34C759FF;
+  --systemTintLight-blue : #007AFFFF;
+  --systemTintLight-yello : #FFCC00FF;
+}
 
 @layer utilities {
   .text-balance {
