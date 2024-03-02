@@ -258,6 +258,7 @@ const Main = (props: Props) => {
                 source: track.source,
               })
             }
+            key={index}
             className={`group hover:scale-110 transition-all cursor-pointer select-none max-w-80 rounded-md bg-${track.color} p-2 flex-1 text-center `}
           >
             {track.title}
