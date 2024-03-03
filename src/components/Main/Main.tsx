@@ -92,6 +92,7 @@ const Main = (props: Props) => {
       return null;
     });
     setSpeed((old) => (old == 1 ? 2 : 1));
+    clearInterval(intervalID);
   };
 
   /**
