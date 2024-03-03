@@ -150,6 +150,9 @@ const Main = (props: Props) => {
             ) {
               audioRef.current[index].currentTime =
                 (time - tt.startTime) / 1000;
+            }else{
+              audioRef.current[index].currentTime = 0;
+              audioRef.current[index].pause();
             }
         }
         return tt;
