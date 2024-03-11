@@ -136,6 +136,7 @@ const Main = (props: IMainProps) => {
   useEffect(() => {
     clearInterval(intervalID);
     if (playing) {
+      handleTrackscurrentTimeAndState(time,true,timeLineTracks,audioRef.current);
       const ID = setInterval(updateTime, intervalDuration,speed*intervalDuration,timeLineDuration);
       setintervalID(ID);
     } else {
