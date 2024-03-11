@@ -190,32 +190,22 @@ const Main = (props: IMainProps) => {
    * @param index it is the index of the track on which the event is fired.
    */
   const handler = (event: React.MouseEvent, index: number) => {
-    // console.log("wrapperRef", wrapperRef.current, thumbRef.current);
-
-    event.preventDefault(); // prevent selection start (browser action)
-    // console.log(event.clientX, event.currentTarget.getBoundingClientRect());
+    event.preventDefault(); // prevent selection start (browser action).
 
     let shiftX =
       event.clientX - event.currentTarget.getBoundingClientRect().left;
-    // shiftY not needed, the thumb moves only horizontally
-    // console.log("shiftX", shiftX);
+    // shiftY not needed, the thumb moves only horizontally.
 
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
 
     function onMouseMove(e: MouseEvent) {
-      // console.log(
-      //   e.clientX,
-      //   shiftX,
-      //   wrapperRef.current[index].getBoundingClientRect()
-      // );
-
       let newLeft =
         e.clientX -
         shiftX -
         wrapperRef.current[index].getBoundingClientRect().left;
 
-      // the pointer is out of slider => lock the thumb within the bounaries
+      // the pointer is out of slider => lock the thumb within the bounaries.
       if (newLeft < 0) {
         newLeft = 0;
       }
@@ -227,8 +217,6 @@ const Main = (props: IMainProps) => {
       }
 
       // thumbRef.current[index].style.left = newLeft + "px";
-      // console.log(newLeft);
-
       let newTimeLineTracks = timeLineTracks.map((tt, idx) => {
         if (idx == index) {
           tt.startTime =
@@ -242,7 +230,6 @@ const Main = (props: IMainProps) => {
         }
         return tt;
       });
-      // console.log(newTimeLineTracks);
       setTimeLineTracks(newTimeLineTracks);
     }
 
@@ -278,7 +265,6 @@ const Main = (props: IMainProps) => {
         if (newLeft > rightEdge) {
           newLeft = rightEdge;
         }
-        // console.log(newLeft);
 
         let newTime = (newLeft / timeLineRef.current?.offsetWidth) * 30000;
         setTime(newTime);
