@@ -2,15 +2,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 
-// internal modules/ components
+// internal modules/ components / ui
 import { PauseIcon, PlayIcon } from "../../../public/assets/svgIcons";
 import TrackList from "./TrackList";
 import Tooltip from "../ui/Tooltip";
 
+// Types
 interface IMainProps {}
 
 const Main = (props: IMainProps) => {
-  // console.log("Re render");
 
   //----------------------------------------------$ states of the component(Timeline Track) i.e current time, play/pause, playback speed, tracks etc. $ --------------------------------//
   const [timeLineDuration, setTimeLineDuration] = useState(30000);
@@ -21,7 +21,7 @@ const Main = (props: IMainProps) => {
   const [timeLineTracks, setTimeLineTracks] = useState<TrackType[]>([]);
   const [intervalID, setintervalID] = useState<NodeJS.Timeout>();
 
-  //----------------------------------------------$ reference to the DOM Elements of(Timeline Track) i.e timeline container,  timeline thumb, track container, track, audio etc. $-----// 
+  //----------------------------------------------$ reference to the DOM Elements of(Timeline Track) i.e timeline container,  timeline thumb, track container, track, audio etc. $-----//
   const timeLineRef = useRef<HTMLDivElement | null>(null);
   const timeRef = useRef<HTMLDivElement | null>(null);
   const wrapperRef = useRef<Array<HTMLDivElement>>(new Array());
@@ -49,17 +49,7 @@ const Main = (props: IMainProps) => {
    * @description the following function adds a new track on the TimeLine.
    * @param param0 object containing the data of tracks i.e background color, title, duraton, source url
    */
-  const addTrack = ({
-    color,
-    title,
-    duration,
-    source,
-  }: {
-    color: string;
-    title: string;
-    duration: number;
-    source: string;
-  }) => {
+  const addTrack = ({ color, title, duration, source }: MinimalTrackType) => {
     const newTrack = {
       color,
       title,
@@ -81,61 +71,62 @@ const Main = (props: IMainProps) => {
   };
 
   // ----------------------------------------------------------------------- $ audio element handlers $ ------------------------------------------------------------------ //
-  
+
   /**
    * @description update playback state of all the audioElements to pause.
-  */
- const pauseAllTracks = (tracks:TrackType[], audioElementArr : HTMLAudioElement[]) => {
-   tracks.forEach((_, index) => {
-     audioElementArr[index].pause();
+   */
+  const pauseAllTracks = ( tracks: TrackType[], audioElementArr: HTMLAudioElement[] ) => {
+    tracks.forEach((_, index) => {
+      audioElementArr[index].pause();
     });
-  }
-  
+  };
+
   /**
    * @description update playBackRate of AudioElements with the given rate.
    */
-  const updatePlaybackRate = (playbackRate: number,tracks:TrackType[],audioElementarr : HTMLAudioElement[]) => {
-    tracks.forEach((_,index) => {
+  const updatePlaybackRate = ( playbackRate: number, tracks: TrackType[], audioElementarr: HTMLAudioElement[] ) => {
+    tracks.forEach((_, index) => {
       audioElementarr[index].playbackRate = playbackRate;
     });
   };
-  
+
   /**
    * @description update currentTime and palyback state of audioTrack wrt to current time of timeLine.
    */
-  const handleTrackscurrentTimeAndState = (time: number,state: boolean, tracks:TrackType[], audioElementArr : HTMLAudioElement[]) => {
+  const handleTrackscurrentTimeAndState = ( time: number, state: boolean, tracks: TrackType[], audioElementArr: HTMLAudioElement[]
+  ) => {
     tracks.forEach((tt, index) => {
       if (tt.startTime <= time && time <= tt.startTime + tt.duration) {
-        if (audioRef.current[index].paused) audioElementArr[index].currentTime = (time - tt.startTime) / 1000;
+        if (audioRef.current[index].paused)
+          audioElementArr[index].currentTime = (time - tt.startTime) / 1000;
         state ? audioElementArr[index].play() : audioElementArr[index].pause();
       }
       if (time >= tt.startTime + tt.duration) {
         audioElementArr[index].pause();
-        audioElementArr[index].currentTime =
-        audioElementArr[index].duration;
-        }
+        audioElementArr[index].currentTime = audioElementArr[index].duration;
+      }
     });
-  }
+  };
 
   // ----------------------------------------------------------------------- $ helper functions -------- ---------------------------------------------------------------- //
-  
+
   /**
    * @description increases time by given amount.
    * @param amount {number} by which time will be increased in milliseconds.
    * @param constraint {number} limit of the timeline in milliseconds.
-  */
- const updateTime = (amount:number,constraint: number) => {
-   setTime((old) => {
-     if (old >= constraint) {
-       setPlaying(false);
-       return constraint;
+   */
+  const updateTime = (amount: number, constraint: number) => {
+    setTime((old) => {
+      if (old >= constraint) {
+        setPlaying(false);
+        return constraint;
       } else {
         let newtime = old + amount;
         return newtime;
       }
     });
-  }
-  
+  };
+
   // calculate seconds and miliseconds using float representation of time.
   let s = useMemo(() => Math.floor(time / 1000), [time]);
   let ms = useMemo(() => Math.round((time % 1000) / 20), [time]);
@@ -145,45 +136,45 @@ const Main = (props: IMainProps) => {
   /**
    * @summary sideEffect hook triggers the @callback when [speed,timeLineTracks...] is mutated.
    * @callback updatePlaybackRate
-  */
+   */
   useEffect(() => {
-    audioRef.current && updatePlaybackRate(speed,timeLineTracks,audioRef.current);
+    audioRef.current && updatePlaybackRate(speed, timeLineTracks, audioRef.current);
   }, [speed, timeLineTracks.length, audioRef.current.length]);
-  
+
   /**
    * @summary The following hook triggers on changing states [playing,speed] of The component.
-   * @callback wrt dependancies [playing,speed] It sets/clears an timeinterval for which the states[time] is updated, 
+   * @callback wrt dependancies [playing,speed] It sets/clears an timeinterval for which the states[time] is updated,
    *           and updates the state of audio elements by play/pause;
    */
   useEffect(() => {
     clearInterval(intervalID);
     if (playing) {
-      handleTrackscurrentTimeAndState(time,true,timeLineTracks,audioRef.current);
-      const ID = setInterval(updateTime, intervalDuration,speed*intervalDuration,timeLineDuration);
+      handleTrackscurrentTimeAndState(time, true, timeLineTracks, audioRef.current);
+      const ID = setInterval(updateTime,intervalDuration,speed * intervalDuration,timeLineDuration);
       setintervalID(ID);
     } else {
-      pauseAllTracks(timeLineTracks,audioRef.current);
+      pauseAllTracks(timeLineTracks, audioRef.current);
     }
     return () => {
       clearInterval(intervalID);
     };
   }, [playing, speed]);
 
-/**
- * @summary sideEffect hook triggers the callback when dependance states [time] is changed.
- * @callback handleTrackscurrentTimeAndState wrt to states [playing].
- */
+  /**
+   * @summary sideEffect hook triggers the callback when dependance states [time] is changed.
+   * @callback handleTrackscurrentTimeAndState wrt to states [playing].
+   */
   useEffect(() => {
     if (playing) {
-      handleTrackscurrentTimeAndState(time,true,timeLineTracks,audioRef.current);
+      handleTrackscurrentTimeAndState(time, true, timeLineTracks, audioRef.current);
     } else {
       // (case : when we drag thumb and timeline is paused. )
-      handleTrackscurrentTimeAndState(time,false,timeLineTracks,audioRef.current);
+      handleTrackscurrentTimeAndState(time, false, timeLineTracks, audioRef.current);
     }
   }, [time]);
 
   // ---------------------------------------------------------------- $ event handlers $ ---------------------------------------------------------------------------------- //
-  
+
   /**
    * @description the following function/eventHandler provides dragging and dropping for the tracks by calculating the distance from the track container left edge to the left edge of the track.
    * @param event React MouseDown event on any Track present in the TimeLine
@@ -200,18 +191,13 @@ const Main = (props: IMainProps) => {
     document.addEventListener("mouseup", onMouseUp);
 
     function onMouseMove(e: MouseEvent) {
-      let newLeft =
-        e.clientX -
-        shiftX -
-        wrapperRef.current[index].getBoundingClientRect().left;
+      let newLeft = e.clientX - shiftX - wrapperRef.current[index].getBoundingClientRect().left;
 
       // the pointer is out of slider => lock the thumb within the bounaries.
       if (newLeft < 0) {
         newLeft = 0;
       }
-      let rightEdge =
-        wrapperRef.current[index].offsetWidth -
-        thumbRef.current[index].offsetWidth;
+      let rightEdge = wrapperRef.current[index].offsetWidth - thumbRef.current[index].offsetWidth;
       if (newLeft > rightEdge) {
         newLeft = rightEdge;
       }
@@ -219,8 +205,7 @@ const Main = (props: IMainProps) => {
       // thumbRef.current[index].style.left = newLeft + "px";
       let newTimeLineTracks = timeLineTracks.map((tt, idx) => {
         if (idx == index) {
-          tt.startTime =
-            (newLeft / wrapperRef?.current[index].offsetWidth) * 30000;
+          tt.startTime = (newLeft / wrapperRef?.current[index].offsetWidth) * 30000;
           if (tt.startTime <= time && time <= tt.startTime + tt.duration) {
             audioRef.current[index].currentTime = (time - tt.startTime) / 1000;
           } else {
@@ -252,16 +237,12 @@ const Main = (props: IMainProps) => {
 
     function onMouseMoveTimer(event: MouseEvent) {
       if (timeLineRef.current && timeRef.current) {
-        let newLeft =
-          event.clientX -
-          shiftX -
-          timeLineRef.current?.getBoundingClientRect().left;
+        let newLeft = event.clientX - shiftX - timeLineRef.current?.getBoundingClientRect().left;
         if (newLeft < 0) {
           newLeft = 0;
         }
 
-        let rightEdge =
-          timeLineRef.current?.offsetWidth - timeRef.current?.offsetWidth;
+        let rightEdge = timeLineRef.current?.offsetWidth - timeRef.current?.offsetWidth;
         if (newLeft > rightEdge) {
           newLeft = rightEdge;
         }
