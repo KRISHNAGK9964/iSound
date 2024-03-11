@@ -91,10 +91,7 @@ const Main = (props: IMainProps) => {
     });
   };
   
-  useEffect(() => {
-    audioRef.current && updatePlaybackRate(speed,timeLineTracks,audioRef.current);
-  }, [speed, timeLineTracks.length, audioRef.current.length]);
-
+  
   /**
    * @description update currentTime and state of audioTrack wrt to time.
    */
@@ -108,30 +105,47 @@ const Main = (props: IMainProps) => {
         audioElementArr[index].pause();
         audioElementArr[index].currentTime =
           audioElementArr[index].duration;
-      }
+        }
     });
   }
-
-  const pauseAllTracks = (tracks:TrackType[], audioElementArr : HTMLAudioElement[]) => {
-    tracks.forEach((_, index) => {
-      audioElementArr[index].pause();
+  /**
+   * @description update states of all the audioElements to pause.
+  */
+ const pauseAllTracks = (tracks:TrackType[], audioElementArr : HTMLAudioElement[]) => {
+   tracks.forEach((_, index) => {
+     audioElementArr[index].pause();
     });
   }
-
-  const updateTime = (time:number,constraint: number) => {
-    setTime((old) => {
+  
+  /**
+   * @description increases time by given amount.
+   * @param amount {number} by which time will be increased in milliseconds.
+   * @param constraint {number} limit of the timeline in milliseconds.
+  */
+ const updateTime = (amount:number,constraint: number) => {
+   setTime((old) => {
       if (old >= constraint) {
         setPlaying(false);
         return constraint;
       } else {
-        let newtime = old + time;
+        let newtime = old + amount;
         return newtime;
       }
     });
   }
+
   /**
-   * @description The following hook triggers on changing state(play/pause) of Timeline Track.
-   * It sets an timeinterval for which the state(time) is updated and tracks that are overlapping are played, others are paused.
+   * @summary sideEffect hook triggers the @callback when [speed,timeLineTracks...] is mutated.
+   * @callback updatePlaybackRate
+   */
+  useEffect(() => {
+    audioRef.current && updatePlaybackRate(speed,timeLineTracks,audioRef.current);
+  }, [speed, timeLineTracks.length, audioRef.current.length]);
+  
+  /**
+   * @summary The following hook triggers on changing states [playing,speed] of The component.
+   * @callback wrt dependancies [playing,speed] It sets/clears an timeinterval for which the states[time] is updated, 
+   *           and updates the state of audio elements by play/pause;
    */
   useEffect(() => {
     clearInterval(intervalID);
@@ -147,7 +161,10 @@ const Main = (props: IMainProps) => {
     };
   }, [playing, speed]);
 
-
+/**
+ * @summary sideEffect hook triggers the callback when dependance states [time] is changed.
+ * @callback handleTrackscurrentTimeAndState wrt to states [playing].
+ */
   useEffect(() => {
     if (playing) {
       handleTrackscurrentTimeAndState(time,true,timeLineTracks,audioRef.current);
