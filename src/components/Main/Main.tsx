@@ -1,21 +1,24 @@
 // framework modules/ APIs
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 
-// internal modules/ data
+// internal modules/ components
 import { PauseIcon, PlayIcon } from "../../../public/assets/svgIcons";
-import { tracks } from "@/data/tracks";
+import TrackList from "./TrackList";
+import Tooltip from "../ui/Tooltip";
 
-// type declarations
-type trackType = (typeof tracks)[0];
-type Props = {};
+interface IMainProps {}
 
-const Main = (props: Props) => {
+const Main = (props: IMainProps) => {
+  // console.log("Re render");
+
   // states of the component(Timeline Track) i.e current time, play/pause, playback speed, tracks etc. ------------------------------------------------- //
+  const [timeLineDuration, setTimeLineDuration] = useState(30000);
+  const [intervalDuration, setIntervalDuration] = useState(100);
   const [time, setTime] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const [timeLineTracks, setTimeLineTracks] = useState<trackType[]>([]);
+  const [timeLineTracks, setTimeLineTracks] = useState<TrackType[]>([]);
   const [intervalID, setintervalID] = useState<NodeJS.Timeout>();
 
   // reference to the DOM Elements of(Timeline Track) i.e timeline container,  timeline thumb, track container, track, audio etc. ----------------------- //
@@ -25,197 +28,21 @@ const Main = (props: Props) => {
   const thumbRef = useRef<Array<HTMLDivElement>>(new Array());
   const audioRef = useRef<Array<HTMLAudioElement>>(new Array());
 
-  /**
-   * @description The following hook triggers on changing state(play/pause) of Timeline Track.
-   * It sets an timeinterval for which the state(time) is updated and tracks that are overlapping are played, others are paused.
-   */
-  useEffect(() => {
-    if (playing) {
-      const ID = setInterval(async () => {
-        // console.log(time);
-        // console.log(audioRef.current);
-        setTime((old) => {
-          if (old >= 30000) {
-            setPlaying(false);
-            return 30000;
-          } else {
-            let cspeed = speed;
-            // setSpeed(old => {cspeed = old; return old;})
-            let nt = old + 200 * cspeed;
-            // console.log(cspeed);
-            timeLineTracks.map((tt, index) => {
-              if (tt.startTime <= nt && nt <= tt.startTime + tt.duration) {
-                audioRef.current[index].play();
-              }
-              if (nt >= tt.startTime + tt.duration) {
-                audioRef.current[index].pause();
-                audioRef.current[index].currentTime = 0;
-              }
-              return null;
-            });
-            return nt;
-          }
-        });
-      }, 200);
-      setintervalID(ID);
-    } else {
-      // console.log(intervalID);
-      timeLineTracks.map((tt, index) => {
-        audioRef.current[index].pause();
-        return null;
-      });
-      clearInterval(intervalID);
-    }
-    return () => {
-      clearInterval(intervalID);
-    };
-  }, [playing,speed]);
+  // ----------------------------------------------$ TimeLine mutations(states:[play/pause , speed, timeLineTracks, time...]) $---------------------------------------------------//
 
   /**
    * @function the following function toggles the play and pause state of the TimeLine Track.
    */
   const handlePlayPause = () => {
-    setPlaying((old) => {
-      if (time == 30000) {
-        setTime(0);
-      }
-      return !old;
-    });
+    setTime((old) => (old === timeLineDuration ? 0 : old));
+    setPlaying((old) => !old);
   };
 
   /**
-   * @function the following function toggles the playback speed state of the TimeLine Track and audios.
+   * @function the following function toggles the playback Rate of the TimeLine Track.
    */
   const handleSpeed = () => {
-    timeLineTracks.map((tt, index) => {
-      audioRef.current[index].playbackRate = speed == 2 ? 1 : 2;
-      return null;
-    });
     setSpeed((old) => (old == 1 ? 2 : 1));
-    clearInterval(intervalID);
-  };
-
-  /**
-   * @description the following function/eventHandler provides dragging and dropping for the tracks by calculating the distance from the track container left edge to the left edge of the track.
-   * @param event React MouseDown event on any Track present in the TimeLine
-   * @param index it is the index of the track on which the event is fired.
-   */
-  const handler = (event: React.MouseEvent, index: number) => {
-    // console.log("wrapperRef", wrapperRef.current, thumbRef.current);
-
-    event.preventDefault(); // prevent selection start (browser action)
-    // console.log(event.clientX, event.currentTarget.getBoundingClientRect());
-
-    let shiftX =
-      event.clientX - event.currentTarget.getBoundingClientRect().left;
-    // shiftY not needed, the thumb moves only horizontally
-    // console.log("shiftX", shiftX);
-
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-
-    function onMouseMove(e: MouseEvent) {
-      console.log(
-        e.clientX,
-        shiftX,
-        wrapperRef.current[index].getBoundingClientRect()
-      );
-
-      let newLeft =
-        e.clientX -
-        shiftX -
-        wrapperRef.current[index].getBoundingClientRect().left;
-
-      // the pointer is out of slider => lock the thumb within the bounaries
-      if (newLeft < 0) {
-        newLeft = 0;
-      }
-      let rightEdge =
-        wrapperRef.current[index].offsetWidth -
-        thumbRef.current[index].offsetWidth;
-      if (newLeft > rightEdge) {
-        newLeft = rightEdge;
-      }
-
-      // thumbRef.current[index].style.left = newLeft + "px";
-      // console.log(newLeft);
-
-      let newTimeLineTracks = timeLineTracks.map((tt, idx) => {
-        if (idx == index) {
-          tt.startTime =
-            (newLeft / wrapperRef?.current[index].offsetWidth) * 30000;
-            if (
-              tt.startTime <= time &&
-              time <= tt.startTime + tt.duration
-            ) {
-              audioRef.current[index].currentTime =
-                (time - tt.startTime) / 1000;
-            }else{
-              audioRef.current[index].currentTime = 0;
-              audioRef.current[index].pause();
-            }
-        }
-        return tt;
-      });
-      // console.log(newTimeLineTracks);
-      setTimeLineTracks(newTimeLineTracks);
-    }
-
-    function onMouseUp() {
-      document.removeEventListener("mouseup", onMouseUp);
-      document.removeEventListener("mousemove", onMouseMove);
-    }
-  };
-
-  /**
-   * @description the following function/eventHandler provides dragging and dropping for the timeline thumb by calculating the distance from the TimeLine container left edge to the left edge of the thumb.
-   * @param e React MouseDown event on the TimeLine thumb present in the TimeLine.
-   */
-  const TimerDragHandler = (e: React.MouseEvent) => {
-    e.preventDefault();
-    let shiftX = e.clientX - e.currentTarget.getBoundingClientRect().left;
-    document.addEventListener("mousemove", onMouseMoveTimer);
-    document.addEventListener("mouseup", onMouseUpTimer);
-
-    function onMouseMoveTimer(event: MouseEvent) {
-      if (timeLineRef.current && timeRef.current) {
-        let newLeft =
-          event.clientX -
-          shiftX -
-          timeLineRef.current?.getBoundingClientRect().left;
-        if (newLeft < 0) {
-          newLeft = 0;
-        }
-
-        let rightEdge =
-          timeLineRef.current?.offsetWidth - timeRef.current?.offsetWidth;
-        if (newLeft > rightEdge) {
-          newLeft = rightEdge;
-        }
-        // console.log(newLeft);
-
-        let newTime = (newLeft / timeLineRef.current?.offsetWidth) * 30000;
-
-        timeLineTracks.forEach((tt, index) => {
-          if (
-            tt.startTime <= newTime &&
-            newTime <= tt.startTime + tt.duration
-          ) {
-            audioRef.current[index].currentTime =
-              (newTime - tt.startTime) / 1000;
-          }else{
-            audioRef.current[index].currentTime = 0;
-              audioRef.current[index].pause();
-          }
-        });
-        setTime(newTime);
-      }
-    }
-
-    function onMouseUpTimer() {
-      document.removeEventListener("mousemove", onMouseMoveTimer);
-      document.removeEventListener("mouseup", onMouseUpTimer);
-    }
   };
 
   /**
@@ -241,7 +68,7 @@ const Main = (props: Props) => {
       duration,
       source,
     };
-    setTimeLineTracks([...timeLineTracks, newTrack]);
+    setTimeLineTracks((old) => [...old, newTrack]);
   };
 
   /**
@@ -249,13 +76,196 @@ const Main = (props: Props) => {
    * @param index it is the index of the track which has to be removed.
    */
   const handleRemoveTrack = (index: number) => {
-    let newTracks = timeLineTracks.filter((tt, idx) => idx != index);
+    let newTracks = timeLineTracks.filter((_, idx) => idx != index);
     setTimeLineTracks(newTracks);
   };
 
+  // -------------------------------------------------$ Timeline subscriptions(states:[speed,time,timeLineTracks...]) $---------------------------------------------------- //
+  
+  /**
+   * @description update playBackRate of AudioElements with the given rate.
+   */
+  const updatePlaybackRate = (rate: number,tracks:TrackType[],audioElementarr : HTMLAudioElement[]) => {
+    tracks.forEach((_,index) => {
+      audioElementarr[index].playbackRate = rate;
+    });
+  };
+  
+  useEffect(() => {
+    audioRef.current && updatePlaybackRate(speed,timeLineTracks,audioRef.current);
+  }, [speed, timeLineTracks.length, audioRef.current.length]);
+
+  /**
+   * @description update currentTime and state of audioTrack wrt to time.
+   */
+  const handleTrackscurrentTimeAndState = (time: number,state: boolean, tracks:TrackType[], audioElementArr : HTMLAudioElement[]) => {
+    tracks.forEach((tt, index) => {
+      if (tt.startTime <= time && time <= tt.startTime + tt.duration) {
+        if (audioRef.current[index].paused) audioElementArr[index].currentTime = (time - tt.startTime) / 1000;
+        state ? audioElementArr[index].play() : audioElementArr[index].pause();
+      }
+      if (time >= tt.startTime + tt.duration) {
+        audioElementArr[index].pause();
+        audioElementArr[index].currentTime =
+          audioElementArr[index].duration;
+      }
+    });
+  }
+
+  const pauseAllTracks = (tracks:TrackType[], audioElementArr : HTMLAudioElement[]) => {
+    tracks.forEach((_, index) => {
+      audioElementArr[index].pause();
+    });
+  }
+
+  const updateTime = (time:number,constraint: number) => {
+    setTime((old) => {
+      if (old >= constraint) {
+        setPlaying(false);
+        return constraint;
+      } else {
+        let newtime = old + time;
+        return newtime;
+      }
+    });
+  }
+  /**
+   * @description The following hook triggers on changing state(play/pause) of Timeline Track.
+   * It sets an timeinterval for which the state(time) is updated and tracks that are overlapping are played, others are paused.
+   */
+  useEffect(() => {
+    clearInterval(intervalID);
+    if (playing) {
+      const ID = setInterval(updateTime, intervalDuration,speed*intervalDuration,timeLineDuration);
+      setintervalID(ID);
+    } else {
+      pauseAllTracks(timeLineTracks,audioRef.current);
+    }
+    return () => {
+      clearInterval(intervalID);
+    };
+  }, [playing, speed]);
+
+
+  useEffect(() => {
+    if (playing) {
+      handleTrackscurrentTimeAndState(time,true,timeLineTracks,audioRef.current);
+    } else {
+      // (case : when we drag thumb and timeline is paused. )
+      handleTrackscurrentTimeAndState(time,false,timeLineTracks,audioRef.current);
+    }
+  }, [time]);
+
+  /**
+   * @description the following function/eventHandler provides dragging and dropping for the tracks by calculating the distance from the track container left edge to the left edge of the track.
+   * @param event React MouseDown event on any Track present in the TimeLine
+   * @param index it is the index of the track on which the event is fired.
+   */
+  const handler = (event: React.MouseEvent, index: number) => {
+    // console.log("wrapperRef", wrapperRef.current, thumbRef.current);
+
+    event.preventDefault(); // prevent selection start (browser action)
+    // console.log(event.clientX, event.currentTarget.getBoundingClientRect());
+
+    let shiftX =
+      event.clientX - event.currentTarget.getBoundingClientRect().left;
+    // shiftY not needed, the thumb moves only horizontally
+    // console.log("shiftX", shiftX);
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+
+    function onMouseMove(e: MouseEvent) {
+      // console.log(
+      //   e.clientX,
+      //   shiftX,
+      //   wrapperRef.current[index].getBoundingClientRect()
+      // );
+
+      let newLeft =
+        e.clientX -
+        shiftX -
+        wrapperRef.current[index].getBoundingClientRect().left;
+
+      // the pointer is out of slider => lock the thumb within the bounaries
+      if (newLeft < 0) {
+        newLeft = 0;
+      }
+      let rightEdge =
+        wrapperRef.current[index].offsetWidth -
+        thumbRef.current[index].offsetWidth;
+      if (newLeft > rightEdge) {
+        newLeft = rightEdge;
+      }
+
+      // thumbRef.current[index].style.left = newLeft + "px";
+      // console.log(newLeft);
+
+      let newTimeLineTracks = timeLineTracks.map((tt, idx) => {
+        if (idx == index) {
+          tt.startTime =
+            (newLeft / wrapperRef?.current[index].offsetWidth) * 30000;
+          if (tt.startTime <= time && time <= tt.startTime + tt.duration) {
+            audioRef.current[index].currentTime = (time - tt.startTime) / 1000;
+          } else {
+            audioRef.current[index].currentTime = 0;
+            audioRef.current[index].pause();
+          }
+        }
+        return tt;
+      });
+      // console.log(newTimeLineTracks);
+      setTimeLineTracks(newTimeLineTracks);
+    }
+
+    function onMouseUp() {
+      document.removeEventListener("mouseup", onMouseUp);
+      document.removeEventListener("mousemove", onMouseMove);
+    }
+  };
+
+  /**
+   * @description the following function/eventHandler provides dragging and dropping for the timeline thumb by calculating the distance from the TimeLine container left edge to the left edge of the thumb.
+   * @param e React MouseDown event on the TimeLine thumb present in the TimeLine.
+   */
+  const TimerDragHandler = (e: React.MouseEvent) => {
+    setPlaying(false);
+    e.preventDefault();
+    let shiftX = e.clientX - e.currentTarget.getBoundingClientRect().left;
+    document.addEventListener("mousemove", onMouseMoveTimer);
+    document.addEventListener("mouseup", onMouseUpTimer);
+
+    function onMouseMoveTimer(event: MouseEvent) {
+      if (timeLineRef.current && timeRef.current) {
+        let newLeft =
+          event.clientX -
+          shiftX -
+          timeLineRef.current?.getBoundingClientRect().left;
+        if (newLeft < 0) {
+          newLeft = 0;
+        }
+
+        let rightEdge =
+          timeLineRef.current?.offsetWidth - timeRef.current?.offsetWidth;
+        if (newLeft > rightEdge) {
+          newLeft = rightEdge;
+        }
+        // console.log(newLeft);
+
+        let newTime = (newLeft / timeLineRef.current?.offsetWidth) * 30000;
+        setTime(newTime);
+      }
+    }
+
+    function onMouseUpTimer() {
+      document.removeEventListener("mousemove", onMouseMoveTimer);
+      document.removeEventListener("mouseup", onMouseUpTimer);
+    }
+  };
+
   // calculate seconds and miliseconds using float representation of time.
-  let s = Math.floor(time / 1000);
-  let ms = Math.round((time % 1000) / 20);
+  let s = useMemo(() => Math.floor(time / 1000), [time]);
+  let ms = useMemo(() => Math.round((time % 1000) / 20), [time]);
 
   return (
     <div>
@@ -264,34 +274,7 @@ const Main = (props: Props) => {
         ⌘iSound
       </header>
       {/* tracks */}
-      <div className="p-4 flex justify-evenly gap-4 overflow-x-clip">
-        {tracks.map((track, index) => (
-          <div
-            onClick={() =>
-              addTrack({
-                color: track.color,
-                title: track.title,
-                duration: track.duration,
-                source: track.source,
-              })
-            }
-            key={index}
-            style={{ backgroundColor: track.color }}
-            className={`group hover:scale-110 transition-all cursor-pointer select-none max-w-80 rounded-md p-2 flex-1 text-center `}
-          >
-            {track.title}
-            <div className="flex gap-2 transition-all z-[5] min-w-max absolute bottom-[120%] left-0  scale-0 rounded bg-systemGbgDark-100  p-1 text-xs  text-white group-hover:scale-100">
-              <p>
-                duration: <span>{Math.round(track.duration / 1000)}s</span>
-              </p>
-              <p>
-                name: <span>{track.title}</span>
-              </p>
-              <div className="w-1 h-6 absolute bg-systembgDark-100 left-0 top-[50%] rounded-md translate-y-2"></div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <TrackList addTrack={addTrack} />
       {/* controls of the TimeLine i.e time, playback speed, play/pause button */}
       <div className="flex justify-between p-2 select-none">
         <div className="flex-1">
@@ -349,7 +332,7 @@ const Main = (props: Props) => {
                 width: `${(track.duration * 100) / 30000}%`,
                 position: "relative",
                 left: `${(track.startTime * 100) / 30000}%`,
-                backgroundColor: track.color
+                backgroundColor: track.color,
               }}
               className={`group relative flex items-center cursor-pointer rounded-md  p-2 flex-1 text-center`}
             >
@@ -363,25 +346,14 @@ const Main = (props: Props) => {
                 controls
                 className="hidden"
               ></audio>
-              <div className="flex gap-2 transition-all z-[5] min-w-max absolute bottom-[120%] left-0  scale-0 rounded bg-systemGbgDark-100 p-1 text-xs  text-white group-hover:scale-100">
-                <p>
-                  start time: <span>{Math.round(track.startTime / 1000)}s</span>
-                </p>
-                <p>
-                  duration: <span>{Math.round(track.duration / 1000)}s</span>
-                </p>
-                <p>
-                  name: <span>{track.title}</span>
-                </p>
-                <div className="w-1 h-6 absolute bg-systembgDark-100 left-0 top-[50%] rounded-md translate-y-2"></div>
-              </div>
+              <Tooltip track={track} />
               <Image
                 onClick={(e) => handleRemoveTrack(index)}
                 src="/assets/wrongIcon.svg"
                 className="group-hover:block hidden absolute right-0 top-1/2 -translate-y-[1rem] text-white"
                 width={30}
                 height={30}
-                alt="x"
+                alt="x icon"
               />
             </div>
           </div>
