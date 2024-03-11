@@ -100,10 +100,9 @@ const Main = (props: IMainProps) => {
         if (audioRef.current[index].paused)
           audioElementArr[index].currentTime = (time - tt.startTime) / 1000;
         state ? audioElementArr[index].play() : audioElementArr[index].pause();
-      }
-      if (time >= tt.startTime + tt.duration) {
+      }else {
+        audioElementArr[index].currentTime = 0;
         audioElementArr[index].pause();
-        audioElementArr[index].currentTime = audioElementArr[index].duration;
       }
     });
   };
