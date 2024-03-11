@@ -12,7 +12,7 @@ interface IMainProps {}
 const Main = (props: IMainProps) => {
   // console.log("Re render");
 
-  // states of the component(Timeline Track) i.e current time, play/pause, playback speed, tracks etc. ------------------------------------------------- //
+  //----------------------------------------------$ states of the component(Timeline Track) i.e current time, play/pause, playback speed, tracks etc. $ --------------------------------//
   const [timeLineDuration, setTimeLineDuration] = useState(30000);
   const [intervalDuration, setIntervalDuration] = useState(100);
   const [time, setTime] = useState(0);
@@ -21,14 +21,14 @@ const Main = (props: IMainProps) => {
   const [timeLineTracks, setTimeLineTracks] = useState<TrackType[]>([]);
   const [intervalID, setintervalID] = useState<NodeJS.Timeout>();
 
-  // reference to the DOM Elements of(Timeline Track) i.e timeline container,  timeline thumb, track container, track, audio etc. ----------------------- //
+  //----------------------------------------------$ reference to the DOM Elements of(Timeline Track) i.e timeline container,  timeline thumb, track container, track, audio etc. $-----// 
   const timeLineRef = useRef<HTMLDivElement | null>(null);
   const timeRef = useRef<HTMLDivElement | null>(null);
   const wrapperRef = useRef<Array<HTMLDivElement>>(new Array());
   const thumbRef = useRef<Array<HTMLDivElement>>(new Array());
   const audioRef = useRef<Array<HTMLAudioElement>>(new Array());
 
-  // ----------------------------------------------$ TimeLine mutations(states:[play/pause , speed, timeLineTracks, time...]) $---------------------------------------------------//
+  // ---------------------------------------------$ TimeLine mutations(states:[play/pause , speed, timeLineTracks, time...]) $---------------------------------------------------------//
 
   /**
    * @function the following function toggles the play and pause state of the TimeLine Track.
@@ -80,20 +80,28 @@ const Main = (props: IMainProps) => {
     setTimeLineTracks(newTracks);
   };
 
-  // -------------------------------------------------$ Timeline subscriptions(states:[speed,time,timeLineTracks...]) $---------------------------------------------------- //
+  // ----------------------------------------------------------------------- $ audio element handlers $ ------------------------------------------------------------------ //
+  
+  /**
+   * @description update playback state of all the audioElements to pause.
+  */
+ const pauseAllTracks = (tracks:TrackType[], audioElementArr : HTMLAudioElement[]) => {
+   tracks.forEach((_, index) => {
+     audioElementArr[index].pause();
+    });
+  }
   
   /**
    * @description update playBackRate of AudioElements with the given rate.
    */
-  const updatePlaybackRate = (rate: number,tracks:TrackType[],audioElementarr : HTMLAudioElement[]) => {
+  const updatePlaybackRate = (playbackRate: number,tracks:TrackType[],audioElementarr : HTMLAudioElement[]) => {
     tracks.forEach((_,index) => {
-      audioElementarr[index].playbackRate = rate;
+      audioElementarr[index].playbackRate = playbackRate;
     });
   };
   
-  
   /**
-   * @description update currentTime and state of audioTrack wrt to time.
+   * @description update currentTime and palyback state of audioTrack wrt to current time of timeLine.
    */
   const handleTrackscurrentTimeAndState = (time: number,state: boolean, tracks:TrackType[], audioElementArr : HTMLAudioElement[]) => {
     tracks.forEach((tt, index) => {
@@ -104,18 +112,12 @@ const Main = (props: IMainProps) => {
       if (time >= tt.startTime + tt.duration) {
         audioElementArr[index].pause();
         audioElementArr[index].currentTime =
-          audioElementArr[index].duration;
+        audioElementArr[index].duration;
         }
     });
   }
-  /**
-   * @description update states of all the audioElements to pause.
-  */
- const pauseAllTracks = (tracks:TrackType[], audioElementArr : HTMLAudioElement[]) => {
-   tracks.forEach((_, index) => {
-     audioElementArr[index].pause();
-    });
-  }
+
+  // ----------------------------------------------------------------------- $ helper functions -------- ---------------------------------------------------------------- //
   
   /**
    * @description increases time by given amount.
@@ -124,20 +126,26 @@ const Main = (props: IMainProps) => {
   */
  const updateTime = (amount:number,constraint: number) => {
    setTime((old) => {
-      if (old >= constraint) {
-        setPlaying(false);
-        return constraint;
+     if (old >= constraint) {
+       setPlaying(false);
+       return constraint;
       } else {
         let newtime = old + amount;
         return newtime;
       }
     });
   }
+  
+  // calculate seconds and miliseconds using float representation of time.
+  let s = useMemo(() => Math.floor(time / 1000), [time]);
+  let ms = useMemo(() => Math.round((time % 1000) / 20), [time]);
+
+  // -------------------------------------------------$ Timeline subscriptions(states:[speed,time,timeLineTracks...]) $--------------------------------------------------- //
 
   /**
    * @summary sideEffect hook triggers the @callback when [speed,timeLineTracks...] is mutated.
    * @callback updatePlaybackRate
-   */
+  */
   useEffect(() => {
     audioRef.current && updatePlaybackRate(speed,timeLineTracks,audioRef.current);
   }, [speed, timeLineTracks.length, audioRef.current.length]);
@@ -174,6 +182,8 @@ const Main = (props: IMainProps) => {
     }
   }, [time]);
 
+  // ---------------------------------------------------------------- $ event handlers $ ---------------------------------------------------------------------------------- //
+  
   /**
    * @description the following function/eventHandler provides dragging and dropping for the tracks by calculating the distance from the track container left edge to the left edge of the track.
    * @param event React MouseDown event on any Track present in the TimeLine
@@ -281,10 +291,7 @@ const Main = (props: IMainProps) => {
     }
   };
 
-  // calculate seconds and miliseconds using float representation of time.
-  let s = useMemo(() => Math.floor(time / 1000), [time]);
-  let ms = useMemo(() => Math.round((time % 1000) / 20), [time]);
-
+  // -------------------------------------------------------------------------- $ jsx $ ----------------------------------------------------------------------------------- //
   return (
     <div>
       {/* header */}
