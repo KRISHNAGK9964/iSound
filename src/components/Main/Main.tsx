@@ -107,12 +107,9 @@ const Main = (props: IMainProps) => {
       }
     });
     // const cc = Date.now();
-    let l = 0 , r = tracks.length-1;
-    while(l <= r){
-      ctr[l] && audioElementArr[l].play();
-      ctr[r] && audioElementArr[r].play();
-      l++;r--;
-    }
+    ctr.forEach(async(flag,idx) => {
+      flag && await audioElementArr[idx].play();
+    });
     // console.log("delay",Date.now()-cc, "ms");
   };
 
