@@ -95,16 +95,25 @@ const Main = (props: IMainProps) => {
    */
   const handleTrackscurrentTimeAndState = ( time: number, state: boolean, tracks: TrackType[], audioElementArr: HTMLAudioElement[]
   ) => {
+    let ctr : any[]= [];
     tracks.forEach((tt, index) => {
       if (tt.startTime <= time && time <= tt.startTime + tt.duration) {
         if (audioRef.current[index].paused)
           audioElementArr[index].currentTime = (time - tt.startTime) / 1000;
-        state ? audioElementArr[index].play() : audioElementArr[index].pause();
+        state ? ctr[index] = true : audioElementArr[index].pause();
       }else {
         audioElementArr[index].currentTime = 0;
         audioElementArr[index].pause();
       }
     });
+    // const cc = Date.now();
+    let l = 0 , r = tracks.length-1;
+    while(l <= r){
+      ctr[l] && audioElementArr[l].play();
+      ctr[r] && audioElementArr[r].play();
+      l++;r--;
+    }
+    // console.log("delay",Date.now()-cc, "ms");
   };
 
   // ----------------------------------------------------------------------- $ helper functions -------- ---------------------------------------------------------------- //
