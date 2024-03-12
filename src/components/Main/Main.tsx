@@ -107,8 +107,8 @@ const Main = (props: IMainProps) => {
       }
     });
     // const cc = Date.now();
-    ctr.forEach(async(flag,idx) => {
-      flag && await audioElementArr[idx].play();
+    ctr.forEach((flag,idx) => {
+      flag && audioElementArr[idx].play();
     });
     // console.log("delay",Date.now()-cc, "ms");
   };
