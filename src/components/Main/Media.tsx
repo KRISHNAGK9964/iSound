@@ -110,13 +110,7 @@ const Media = ({ Gfiles, GsetFiles, addTrack }: Props) => {
   return (
     <div className="p-10 gap-4 min-h-screen bg-systembgDark-200">
       <div
-        style={{
-          background:
-            " linear-gradient(-45deg, #91a100, #0e5987, #61092b, #ce3000) center / 400%",
-        }}
-        className={`border-2 ${
-          dragOver ? "border-systembgDark-100" : "border-transparent"
-        } mx-auto relative overflow-hidden mb-10 h-60 max-w-screen-md rounded-lg flex flex-col group justify-center text-center cursor-pointer bg-[size:400%] dropzone_gradient animate-animate-gradient`}
+        className={`mx-auto relative overflow-hidden mb-10 h-60 max-w-screen-md rounded-lg flex flex-col group justify-center text-center cursor-pointer bg-[size:400%] bg-[linear-gradient(-45deg,#91a100,#0e5987,#61092b,#ce3000)]  animate-animate-gradient`}
         onClick={handleClick}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -132,7 +126,7 @@ const Media = ({ Gfiles, GsetFiles, addTrack }: Props) => {
           accept=".mp3"
         />
         {uploadStarted && (
-          <div className="z-10 absolute inset-0 bg-gray-950 backdrop-blur-sm bg-opacity-40 flex justify-center items-center">
+          <div className="z-10 rounded-lg overflow-hidden absolute inset-0 bg-gray-950 backdrop-blur-sm bg-opacity-40 flex justify-center items-center">
             <Spinner className="w-4 h-4 me-2 text-systemGrayDark-400 animate-spin fill-systembgDark-200" /><p className="text-systembgLight-300">Awaiting file selection</p>
           </div>
         )}
