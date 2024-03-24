@@ -1,6 +1,7 @@
 import React, { DragEvent, useEffect, useRef, useState } from "react";
 import Time from "./Time";
 import { randomHexColor } from "@/util/helper";
+import { Spinner } from "../../../public/assets/svgIcons";
 
 type Props = {
   Gfiles: Array<FileType>;
@@ -10,6 +11,7 @@ type Props = {
 
 
 const Media = ({ Gfiles, GsetFiles, addTrack }: Props) => {
+  const [uploadStarted, setuploadStarted] = useState(false);
   const [dragOver, setDragOver] = useState<boolean>(false);
   const [files, setFiles] = useState<FileType[]>([]);
   const [error, setError] = useState<string>("");
@@ -46,8 +48,12 @@ const Media = ({ Gfiles, GsetFiles, addTrack }: Props) => {
     if (files) {
       processFiles(files);
     }
+    setuploadStarted(false);
   };
 
+  const setUploading = (e: any) => {
+    setuploadStarted(true);
+  }
   const processFiles = (cfiles: FileList) => {
     if (cfiles.length > 0) {
       const cfile = cfiles[0];
@@ -110,7 +116,7 @@ const Media = ({ Gfiles, GsetFiles, addTrack }: Props) => {
         }}
         className={`border-2 ${
           dragOver ? "border-systembgDark-100" : "border-transparent"
-        } mx-auto overflow-hidden mb-10 h-60 max-w-screen-md rounded-lg flex flex-col group justify-center text-center cursor-pointer bg-[size:400%] dropzone_gradient animate-animate-gradient`}
+        } mx-auto relative overflow-hidden mb-10 h-60 max-w-screen-md rounded-lg flex flex-col group justify-center text-center cursor-pointer bg-[size:400%] dropzone_gradient animate-animate-gradient`}
         onClick={handleClick}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -120,21 +126,28 @@ const Media = ({ Gfiles, GsetFiles, addTrack }: Props) => {
           type="file"
           ref={fileInputRef}
           onChange={handleChange}
+          onClick={setUploading}
+          disabled={uploadStarted}
           style={{ display: "none" }}
           accept=".mp3"
         />
+        {uploadStarted && (
+          <div className="z-10 absolute inset-0 bg-gray-950 backdrop-blur-sm bg-opacity-40 flex justify-center items-center">
+            <Spinner className="w-4 h-4 me-2 text-systemGrayDark-400 animate-spin fill-systembgDark-200" /><p className="text-systembgLight-300">Awaiting file selection</p>
+          </div>
+        )}
         {error && (
           <p className="text-white group-hover:scale-105 transition-all duration-500">
             {error}
           </p>
         )}
         {!error && (
-          <p className="text-white text-base md:text-lg group-hover:scale-105 transition-all duration-500">
+          <p className="text-white text-sm lg:text-lg group-hover:scale-105 transition-all duration-500">
             DROP AUDIO FILES HERE
           </p>
         )}
         {!error && (
-          <p className="text-white text-xs md:text-sm group-hover:scale-105 transition-all duration-500">
+          <p className="text-white text-xs lg:text-sm group-hover:scale-105 transition-all duration-500">
             Accepts 0.5 to 10 MB and 1second to 5 minutes
           </p>
         )}

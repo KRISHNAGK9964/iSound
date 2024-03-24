@@ -5,6 +5,5 @@ export function randomHexColor(): string {
   const tintDarkcolors = Object.values(config.theme.extend.colors.systemTintDark);
   let randomIndex = Math.round(Math.random()*(tintDarkcolors.length-1));
   hexCode = tintDarkcolors[randomIndex];
-  console.log(hexCode);
   return hexCode;
 }
