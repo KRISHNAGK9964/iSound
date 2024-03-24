@@ -8,7 +8,7 @@ interface TrackListProps {
 
 const TrackList : React.FC<TrackListProps> = ( {addTrack} ) => {
   return (
-    <div className="p-4 flex justify-evenly gap-4 overflow-x-clip">
+    <div className="p-4 flex justify-evenly gap-4 overflow-x-clip bg-systembgDark-200">
     {tracks.map((track, index) => (
           <div
             onClick={() =>

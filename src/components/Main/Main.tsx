@@ -6,12 +6,27 @@ import Image from "next/image";
 import { PauseIcon, PlayIcon } from "../../../public/assets/svgIcons";
 import TrackList from "./TrackList";
 import Tooltip from "../ui/Tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+import Time from "./Time";
+import TimelineMarks from "./TimelineMarks";
+import Media from "./Media";
 
 // Types
 interface IMainProps {}
 
 const Main = (props: IMainProps) => {
-
   //----------------------------------------------$ states of the component(Timeline Track) i.e current time, play/pause, playback speed, tracks etc. $ --------------------------------//
   const [timeLineDuration, setTimeLineDuration] = useState(30000);
   const [intervalDuration, setIntervalDuration] = useState(100);
@@ -20,6 +35,7 @@ const Main = (props: IMainProps) => {
   const [speed, setSpeed] = useState(1);
   const [timeLineTracks, setTimeLineTracks] = useState<TrackType[]>([]);
   const [intervalID, setintervalID] = useState<NodeJS.Timeout>();
+  const [Gfiles, setGfiles ] = useState<FileType[]>([]);
 
   //----------------------------------------------$ reference to the DOM Elements of(Timeline Track) i.e timeline container,  timeline thumb, track container, track, audio etc. $-----//
   const timeLineRef = useRef<HTMLDivElement | null>(null);
@@ -58,6 +74,8 @@ const Main = (props: IMainProps) => {
       duration,
       source,
     };
+    let newTimeLineDuration = Math.max(timeLineDuration,Math.ceil(duration/30000)*30000);
+    changeTimelineDuration(newTimeLineDuration.toString());
     setTimeLineTracks((old) => [...old, newTrack]);
   };
 
@@ -70,12 +88,19 @@ const Main = (props: IMainProps) => {
     setTimeLineTracks(newTracks);
   };
 
+  const changeTimelineDuration = (value: string) => {
+
+    setTimeLineDuration(parseInt(value));
+  };
   // ----------------------------------------------------------------------- $ audio element handlers $ ------------------------------------------------------------------ //
 
   /**
    * @description update playback state of all the audioElements to pause.
    */
-  const pauseAllTracks = ( tracks: TrackType[], audioElementArr: HTMLAudioElement[] ) => {
+  const pauseAllTracks = (
+    tracks: TrackType[],
+    audioElementArr: HTMLAudioElement[]
+  ) => {
     tracks.forEach((_, index) => {
       audioElementArr[index].pause();
     });
@@ -84,7 +109,11 @@ const Main = (props: IMainProps) => {
   /**
    * @description update playBackRate of AudioElements with the given rate.
    */
-  const updatePlaybackRate = ( playbackRate: number, tracks: TrackType[], audioElementarr: HTMLAudioElement[] ) => {
+  const updatePlaybackRate = (
+    playbackRate: number,
+    tracks: TrackType[],
+    audioElementarr: HTMLAudioElement[]
+  ) => {
     tracks.forEach((_, index) => {
       audioElementarr[index].playbackRate = playbackRate;
     });
@@ -93,21 +122,25 @@ const Main = (props: IMainProps) => {
   /**
    * @description update currentTime and palyback state of audioTrack wrt to current time of timeLine.
    */
-  const handleTrackscurrentTimeAndState = ( time: number, state: boolean, tracks: TrackType[], audioElementArr: HTMLAudioElement[]
+  const handleTrackscurrentTimeAndState = (
+    time: number,
+    state: boolean,
+    tracks: TrackType[],
+    audioElementArr: HTMLAudioElement[]
   ) => {
-    let ctr : any[]= [];
+    let ctr: any[] = [];
     tracks.forEach((tt, index) => {
       if (tt.startTime <= time && time <= tt.startTime + tt.duration) {
         if (audioRef.current[index].paused)
           audioElementArr[index].currentTime = (time - tt.startTime) / 1000;
-        state ? ctr[index] = true : audioElementArr[index].pause();
-      }else {
+        state ? (ctr[index] = true) : audioElementArr[index].pause();
+      } else {
         audioElementArr[index].currentTime = 0;
         audioElementArr[index].pause();
       }
     });
     // const cc = Date.now();
-    ctr.forEach((flag,idx) => {
+    ctr.forEach((flag, idx) => {
       flag && audioElementArr[idx].play();
     });
     // console.log("delay",Date.now()-cc, "ms");
@@ -133,17 +166,23 @@ const Main = (props: IMainProps) => {
   };
 
   // calculate seconds and miliseconds using float representation of time.
-  let s = useMemo(() => Math.floor(time / 1000), [time]);
-  let ms = useMemo(() => Math.round((time % 1000) / 20), [time]);
+  // let s = useMemo(() => Math.floor(time / 1000), [time]);
+  // let ms = useMemo(() => Math.round((time % 1000) / 20), [time]);
+  // let ts = useMemo(() => Math.floor(time / 1000), [timeLineDuration]);
+  // let tms = useMemo(() => Math.floor((time % 1000) / 20), [timeLineDuration]);
 
   // -------------------------------------------------$ Timeline subscriptions(states:[speed,time,timeLineTracks...]) $--------------------------------------------------- //
 
+  useEffect(() => {
+    setTime(Math.min(timeLineDuration, time));
+  }, [timeLineDuration]);
   /**
    * @summary sideEffect hook triggers the @callback when [speed,timeLineTracks...] is mutated.
    * @callback updatePlaybackRate
    */
   useEffect(() => {
-    audioRef.current && updatePlaybackRate(speed, timeLineTracks, audioRef.current);
+    audioRef.current &&
+      updatePlaybackRate(speed, timeLineTracks, audioRef.current);
   }, [speed, timeLineTracks.length, audioRef.current.length]);
 
   /**
@@ -154,8 +193,18 @@ const Main = (props: IMainProps) => {
   useEffect(() => {
     clearInterval(intervalID);
     if (playing) {
-      handleTrackscurrentTimeAndState(time, true, timeLineTracks, audioRef.current);
-      const ID = setInterval(updateTime,intervalDuration,speed * intervalDuration,timeLineDuration);
+      handleTrackscurrentTimeAndState(
+        time,
+        true,
+        timeLineTracks,
+        audioRef.current
+      );
+      const ID = setInterval(
+        updateTime,
+        intervalDuration,
+        speed * intervalDuration,
+        timeLineDuration
+      );
       setintervalID(ID);
     } else {
       pauseAllTracks(timeLineTracks, audioRef.current);
@@ -171,10 +220,20 @@ const Main = (props: IMainProps) => {
    */
   useEffect(() => {
     if (playing) {
-      handleTrackscurrentTimeAndState(time, true, timeLineTracks, audioRef.current);
+      handleTrackscurrentTimeAndState(
+        time,
+        true,
+        timeLineTracks,
+        audioRef.current
+      );
     } else {
       // (case : when we drag thumb and timeline is paused. )
-      handleTrackscurrentTimeAndState(time, false, timeLineTracks, audioRef.current);
+      handleTrackscurrentTimeAndState(
+        time,
+        false,
+        timeLineTracks,
+        audioRef.current
+      );
     }
   }, [time]);
 
@@ -196,13 +255,18 @@ const Main = (props: IMainProps) => {
     document.addEventListener("mouseup", onMouseUp);
 
     function onMouseMove(e: MouseEvent) {
-      let newLeft = e.clientX - shiftX - wrapperRef.current[index].getBoundingClientRect().left;
+      let newLeft =
+        e.clientX -
+        shiftX -
+        wrapperRef.current[index].getBoundingClientRect().left;
 
       // the pointer is out of slider => lock the thumb within the bounaries.
       if (newLeft < 0) {
         newLeft = 0;
       }
-      let rightEdge = wrapperRef.current[index].offsetWidth - thumbRef.current[index].offsetWidth;
+      let rightEdge =
+        wrapperRef.current[index].offsetWidth -
+        thumbRef.current[index].offsetWidth;
       if (newLeft > rightEdge) {
         newLeft = rightEdge;
       }
@@ -210,7 +274,9 @@ const Main = (props: IMainProps) => {
       // thumbRef.current[index].style.left = newLeft + "px";
       let newTimeLineTracks = timeLineTracks.map((tt, idx) => {
         if (idx == index) {
-          tt.startTime = (newLeft / wrapperRef?.current[index].offsetWidth) * 30000;
+          tt.startTime =
+            (newLeft / wrapperRef?.current[index].offsetWidth) *
+            timeLineDuration;
           if (tt.startTime <= time && time <= tt.startTime + tt.duration) {
             audioRef.current[index].currentTime = (time - tt.startTime) / 1000;
           } else {
@@ -242,17 +308,22 @@ const Main = (props: IMainProps) => {
 
     function onMouseMoveTimer(event: MouseEvent) {
       if (timeLineRef.current && timeRef.current) {
-        let newLeft = event.clientX - shiftX - timeLineRef.current?.getBoundingClientRect().left;
+        let newLeft =
+          event.clientX -
+          shiftX -
+          timeLineRef.current?.getBoundingClientRect().left;
         if (newLeft < 0) {
           newLeft = 0;
         }
 
-        let rightEdge = timeLineRef.current?.offsetWidth - timeRef.current?.offsetWidth;
+        let rightEdge =
+          timeLineRef.current?.offsetWidth - timeRef.current?.offsetWidth;
         if (newLeft > rightEdge) {
           newLeft = rightEdge;
         }
 
-        let newTime = (newLeft / timeLineRef.current?.offsetWidth) * 30000;
+        let newTime =
+          (newLeft / timeLineRef.current?.offsetWidth) * timeLineDuration;
         setTime(newTime);
       }
     }
@@ -265,48 +336,78 @@ const Main = (props: IMainProps) => {
 
   // -------------------------------------------------------------------------- $ jsx $ ----------------------------------------------------------------------------------- //
   return (
-    <div>
+    <div className="min-h-screen overflow-clip bg-systembgDark-300">
       {/* header */}
-      <header className="p-10 text-center text-xl flex justify-center">
+      <header className="p-10 text-center text-xl flex justify-center text-systembgLight-100">
         ⌘iSound
       </header>
       {/* tracks */}
+      <Sheet>
+        <SheetTrigger className="text-systembgLight-300 bg-systembgDark-200 p-1 px-2 rounded-md w-fit relative left-1/2 -translate-x-1/2 mb-5">My Media</SheetTrigger>
+        <SheetContent className="p-0 lg:max-w-screen-md  border-2">
+          <Media addTrack={addTrack} GsetFiles={setGfiles} Gfiles={Gfiles} />
+        </SheetContent>
+      </Sheet>
       <TrackList addTrack={addTrack} />
       {/* controls of the TimeLine i.e time, playback speed, play/pause button */}
-      <div className="flex justify-between p-2 select-none">
-        <div className="flex-1">
-          Time: {s < 10 ? `0${s}` : s}:{ms < 10 ? `0${ms}` : ms}/30:00
+      <div className="flex justify-between p-2 select-none items-center">
+        <div className="flex-1 flex items-center text-systembgLight-200">
+          <span>Time: </span> <Time time={time} /> /
+          <Select
+            value={timeLineDuration.toString()}
+            onValueChange={changeTimelineDuration}
+          >
+            <SelectTrigger className="border-none py-1 px-1 text-base h-fit w-fit focus:ring-0 hover:bg-systembgDark-100">
+              <SelectValue>
+                <Time time={timeLineDuration} />
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-systembgDark-200 text-systembgLight-100">
+              <SelectItem disabled={timeLineTracks.findIndex(tt => tt.duration >= 30000) >= 0} value="30000">30s</SelectItem>
+              <SelectItem disabled={timeLineTracks.findIndex(tt => tt.duration >= 60000) >= 0} value="60000">1min</SelectItem>
+              <SelectItem disabled={timeLineTracks.findIndex(tt => tt.duration >= 120000) >= 0} value="120000">2min</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex-1 cursor-pointer">
           {!playing ? (
-            <PlayIcon onClick={handlePlayPause} className="w-6 h-6" />
+            <PlayIcon
+              onClick={handlePlayPause}
+              className="w-6 h-6 hover:scale-125 transition-all duration-500 text-systembgLight-300 rounded-full bg-systembgDark-100 p-1"
+            />
           ) : (
             <PauseIcon
               onClick={handlePlayPause}
-              className="text-black w-6 h-6"
+              className="text-systembgLight-300 w-6 h-6 rounded-full bg-systembgDark-100 p-1 hover:scale-125 transition-all duration-500"
             />
           )}
         </div>
-        <div onClick={handleSpeed} className="cursor-pointer select-none">
-          {speed}X
+        <div
+          onClick={handleSpeed}
+          className="cursor-pointer select-none text-sm bg-systembgDark-200 hover:bg-systembgDark-100 rounded px-2 p-0.5 text-systembgLight-300"
+        >
+          {speed}x
         </div>
       </div>
       {/* TimeLine container */}
       <div
         ref={timeLineRef}
-        className="w-[calc(100vw-1rem)] overflow-visible flex flex-col gap-2 border  py-4 min-h-16 relative"
+        className="w-[calc(100vw-2rem)] overflow-visible flex flex-col gap-2  py-4 min-h-16 relative"
       >
+        <TimelineMarks time={timeLineDuration / 1000} />
         {/* TimeLine thumb */}
         <div
           ref={timeRef}
           onMouseDown={TimerDragHandler}
           draggable={true}
           onDragStart={() => false}
-          style={{ left: `${(time * 100) / 30000}%` }}
+          style={{ left: `${(time * 100) / timeLineDuration}%` }}
           className="transition-all duration-100 -translate-y-4 z-10 cursor-pointer absolute h-[calc(100%)] flex flex-col items-center"
         >
-          <div className="w-4 h-4 bg-systemTintLight-pink"></div>
-          <div className="w-1 opacity-80 bg-red-300 h-full"></div>
+          <div className="absolute z-10 p-1 rounded-xl bg-systemTintLight-indigo text-xs text-systemGbgDark-300">
+            <Time time={time} />
+          </div>
+          <div className="w-0.5 opacity-80 bg-systemTintLight-indigo h-full"></div>
         </div>
         {/* TimeLine Track container */}
         {timeLineTracks.map((track, index) => (
@@ -315,7 +416,7 @@ const Main = (props: IMainProps) => {
             ref={(element: HTMLDivElement) =>
               (wrapperRef.current[index] = element)
             }
-            className={`${index % 2 == 0 ? "bg-slate-300" : ""} py-2`}
+            className={`${index % 2 == 0 ? "bg-systembgDark-200" : ""} py-2`}
           >
             {/* TimeLine tracks */}
             <div
@@ -326,14 +427,18 @@ const Main = (props: IMainProps) => {
               onMouseDown={(e: React.MouseEvent) => handler(e, index)}
               onDragStart={() => false}
               style={{
-                width: `${(track.duration * 100) / 30000}%`,
+                width: `${(track.duration * 100) / timeLineDuration}%`,
                 position: "relative",
-                left: `${(track.startTime * 100) / 30000}%`,
+                left: `${(track.startTime * 100) / timeLineDuration}%`,
                 backgroundColor: track.color,
               }}
-              className={`group relative flex items-center cursor-pointer rounded-md  p-2 flex-1 text-center`}
+              className={`group relative flex items-center cursor-pointer rounded-md p-2 min-h-8 flex-1 text-center`}
             >
-              <p className="flex-1">{track.title}</p>
+              <div className="self-stretch p-0.5 rounded bg-systembgLight-100"></div>
+              <p className="text-xs line-clamp-1 sm:text-sm w-full overflow-hidden text-ellipsis">
+                {track.title}
+              </p>
+              <div className="self-stretch p-0.5 rounded bg-systembgLight-100"></div>
               <audio
                 ref={(element: HTMLAudioElement) =>
                   (audioRef.current[index] = element)
@@ -344,14 +449,18 @@ const Main = (props: IMainProps) => {
                 className="hidden"
               ></audio>
               <Tooltip track={track} />
-              <Image
+              <div
                 onClick={(e) => handleRemoveTrack(index)}
-                src="/assets/wrongIcon.svg"
-                className="group-hover:block hidden absolute right-0 top-1/2 -translate-y-[1rem] text-white"
-                width={30}
-                height={30}
-                alt="x icon"
-              />
+                className="group-hover:block hidden absolute right-0 top-1/2 -translate-y-1/3 size-5 sm:size-6"
+              >
+                <Image
+                  src="/assets/wrongIcon.svg"
+                  objectFit="cover"
+                  className="text-systembgDark-100"
+                  layout="fill"
+                  alt="x icon"
+                />
+              </div>
             </div>
           </div>
         ))}

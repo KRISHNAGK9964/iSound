@@ -9,3 +9,8 @@ type TrackType = MinimalTrackType & {
   startTime: number;
   endTime: number;
 }
+
+type FileType ={
+  file: File;
+  track: MinimalTrackType
+}
