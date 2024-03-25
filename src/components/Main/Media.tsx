@@ -151,7 +151,7 @@ const Media = ({ Gfiles, GsetFiles, addTrack }: Props) => {
           <div
             key={index}
             onClick={() => handleAddTrack(index)}
-            className="hover:scale-105 transition-all duration-500 justify-between cursor-grab rounded-lg bg-systembgDark-100 p-2 text-sm text-white flex"
+            className="hover:scale-105 transition-all duration-300 justify-between cursor-grab rounded-lg bg-systembgDark-100 p-2 text-sm text-white flex"
           >
             <p className="overflow-hidden text-ellipsis w-3/4">{file.file.name}</p>
             <p><Time time={file.track.duration} /></p>

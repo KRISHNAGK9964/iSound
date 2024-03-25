@@ -13,11 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import Time from "./Time";
 import TimelineMarks from "./TimelineMarks";
@@ -35,7 +31,7 @@ const Main = (props: IMainProps) => {
   const [speed, setSpeed] = useState(1);
   const [timeLineTracks, setTimeLineTracks] = useState<TrackType[]>([]);
   const [intervalID, setintervalID] = useState<NodeJS.Timeout>();
-  const [Gfiles, setGfiles ] = useState<FileType[]>([]);
+  const [Gfiles, setGfiles] = useState<FileType[]>([]);
 
   //----------------------------------------------$ reference to the DOM Elements of(Timeline Track) i.e timeline container,  timeline thumb, track container, track, audio etc. $-----//
   const timeLineRef = useRef<HTMLDivElement | null>(null);
@@ -74,7 +70,10 @@ const Main = (props: IMainProps) => {
       duration,
       source,
     };
-    let newTimeLineDuration = Math.max(timeLineDuration,Math.ceil(duration/30000)*30000);
+    let newTimeLineDuration = Math.max(
+      timeLineDuration,
+      Math.ceil(duration / 30000) * 30000
+    );
     changeTimelineDuration(newTimeLineDuration.toString());
     setTimeLineTracks((old) => [...old, newTrack]);
   };
@@ -89,7 +88,6 @@ const Main = (props: IMainProps) => {
   };
 
   const changeTimelineDuration = (value: string) => {
-
     setTimeLineDuration(parseInt(value));
   };
   // ----------------------------------------------------------------------- $ audio element handlers $ ------------------------------------------------------------------ //
@@ -343,8 +341,10 @@ const Main = (props: IMainProps) => {
       </header>
       {/* tracks */}
       <Sheet>
-        <SheetTrigger className="text-systembgLight-300 bg-systembgDark-200 p-1 px-2 rounded-md w-fit relative left-1/2 -translate-x-1/2 mb-5">My Media</SheetTrigger>
-        <SheetContent className="p-0 lg:max-w-screen-md  border-2">
+        <SheetTrigger className="text-systembgLight-300 bg-systembgDark-200 p-1 px-2 rounded-md w-fit relative left-1/2 -translate-x-1/2 mb-5">
+          My Media
+        </SheetTrigger>
+        <SheetContent className="overflow-auto p-0 lg:max-w-screen-md">
           <Media addTrack={addTrack} GsetFiles={setGfiles} Gfiles={Gfiles} />
         </SheetContent>
       </Sheet>
@@ -363,9 +363,30 @@ const Main = (props: IMainProps) => {
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="bg-systembgDark-200 text-systembgLight-100">
-              <SelectItem disabled={timeLineTracks.findIndex(tt => tt.duration >= 30000) >= 0} value="30000">30s</SelectItem>
-              <SelectItem disabled={timeLineTracks.findIndex(tt => tt.duration >= 60000) >= 0} value="60000">1min</SelectItem>
-              <SelectItem disabled={timeLineTracks.findIndex(tt => tt.duration >= 120000) >= 0} value="120000">2min</SelectItem>
+              <SelectItem
+                disabled={
+                  timeLineTracks.findIndex((tt) => tt.duration >= 30000) >= 0
+                }
+                value="30000"
+              >
+                30s
+              </SelectItem>
+              <SelectItem
+                disabled={
+                  timeLineTracks.findIndex((tt) => tt.duration >= 60000) >= 0
+                }
+                value="60000"
+              >
+                1min
+              </SelectItem>
+              <SelectItem
+                disabled={
+                  timeLineTracks.findIndex((tt) => tt.duration >= 120000) >= 0
+                }
+                value="120000"
+              >
+                2min
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -392,9 +413,11 @@ const Main = (props: IMainProps) => {
       {/* TimeLine container */}
       <div
         ref={timeLineRef}
-        className="w-[calc(100vw-2rem)] overflow-visible flex flex-col gap-2  py-4 min-h-16 relative"
+        className="w-[calc(100vw-2rem)] overflow-y-clip overflow-x-visible flex flex-col gap-2 py-4 min-h-16 relative"
       >
-        <TimelineMarks time={timeLineDuration / 1000} />
+        <div className="absolute w-[calc(100%+1px)] h-full border-r border-[#565656]">
+          <TimelineMarks time={timeLineDuration / 1000} />
+        </div>
         {/* TimeLine thumb */}
         <div
           ref={timeRef}
@@ -416,7 +439,7 @@ const Main = (props: IMainProps) => {
             ref={(element: HTMLDivElement) =>
               (wrapperRef.current[index] = element)
             }
-            className={`${index % 2 == 0 ? "bg-systembgDark-200" : ""} py-2`}
+            className={`${index % 2 == 0 ? "bg-systembgDark-200" : ""} py-2 ${index==0 && "mt-10"}`}
           >
             {/* TimeLine tracks */}
             <div
