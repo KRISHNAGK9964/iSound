@@ -17,8 +17,8 @@ const TimelineMarks: React.FC<TimelineMarksProps> = ({ time }) => {
         );
       } else if (i % 5 === 0) {
         arr.push(
-          <div className="text-center flex flex-col items-start flex-1">
-            <span key={i * 2} className="text-xs -translate-x-1/2 opacity-45">
+          <div key={i * 2} className="text-center flex flex-col items-start flex-1">
+            <span  className="text-xs -translate-x-1/2 opacity-45">
               {(i * (time / 30)).toFixed(0)}s
             </span>{" "}
             <span className="text-xs flex-1 border-l opacity-30"></span>
@@ -36,8 +36,8 @@ const TimelineMarks: React.FC<TimelineMarksProps> = ({ time }) => {
     return arr;
   }, [time, intervals]);
   return (
-    <div className="flex h-full cursor-default select-none text-systembgLight-100 py-1">
-      {...markings}
+    <div key={"timelineMarks"} className="flex h-full cursor-default select-none text-systembgLight-100 py-1">
+      {markings}
     </div>
   );
 };

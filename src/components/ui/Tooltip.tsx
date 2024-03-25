@@ -8,7 +8,10 @@ const Tooltip: React.FC<TooltipProps> = ({ track }) => {
   return (
     <div className="flex gap-2 transition-all z-[5] min-w-max absolute bottom-[120%] left-0  scale-0 rounded bg-systemGbgDark-100 p-1 text-xs  text-white group-hover:scale-100">
       <p>
-        start time: <span className="text-systemTintDark-blue" >{Math.round(track.startTime / 1000)}s</span>
+        start time: <span className="text-systemTintDark-blue" >{Math.fround((track.startTime+track.startPoint) / 1000).toFixed(2)}s</span>
+      </p>
+      <p>
+        end time: <span className="text-systemTintDark-blue" >{Math.fround((track.startTime+track.endPoint) / 1000).toFixed(2)}s</span>
       </p>
       <p>
         duration: <span className="text-systemTintDark-blue" >{Math.round(track.duration / 1000)}s</span>

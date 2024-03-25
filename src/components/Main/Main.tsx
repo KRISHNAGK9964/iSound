@@ -1,6 +1,6 @@
 // framework modules/ APIs
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
+import Image from "next/legacy/image";
 
 // internal modules/ components / ui
 import { PauseIcon, PlayIcon } from "../../../public/assets/svgIcons";
@@ -69,6 +69,8 @@ const Main = (props: IMainProps) => {
       endTime: duration,
       duration,
       source,
+      startPoint: 0,
+      endPoint: duration,
     };
     let newTimeLineDuration = Math.max(
       timeLineDuration,
@@ -128,12 +130,17 @@ const Main = (props: IMainProps) => {
   ) => {
     let ctr: any[] = [];
     tracks.forEach((tt, index) => {
-      if (tt.startTime <= time && time <= tt.startTime + tt.duration) {
-        if (audioRef.current[index].paused)
-          audioElementArr[index].currentTime = (time - tt.startTime) / 1000;
+      if (
+        tt.startTime + tt.startPoint <= time &&
+        time <= tt.startTime + tt.endPoint
+      ) {
+        if (audioRef.current[index].paused) {
+          audioElementArr[index].currentTime = (time - (tt.startTime + tt.startPoint)+tt.startPoint) / 1000;
+          // console.log(tt.startPoint,audioElementArr[index].currentTime,(time - (tt.startTime + tt.startPoint)));
+        }
         state ? (ctr[index] = true) : audioElementArr[index].pause();
       } else {
-        audioElementArr[index].currentTime = 0;
+        audioElementArr[index].currentTime = tt.startPoint / 1000;
         audioElementArr[index].pause();
       }
     });
@@ -332,6 +339,89 @@ const Main = (props: IMainProps) => {
     }
   };
 
+  const startPointDragHandler = (e: React.MouseEvent, index: number) => {
+    setPlaying(false);
+    e.preventDefault();
+    e.stopPropagation();
+    let shiftX = e.clientX - e.currentTarget.getBoundingClientRect().left;
+    document.addEventListener("mousemove", onMouseMoveTimer);
+    document.addEventListener("mouseup", onMouseUpTimer);
+    function onMouseMoveTimer(event: MouseEvent) {
+      if (thumbRef.current) {
+        let newLeft =
+          event.clientX -
+          shiftX -
+          thumbRef.current[index].getBoundingClientRect().left;
+        if (newLeft < 0) {
+          newLeft = 0;
+        }
+        // console.log(newLeft);
+
+        let newStartPoint =
+          (newLeft / thumbRef.current[index].offsetWidth) *
+          timeLineTracks[index].duration;
+        if (newStartPoint > timeLineTracks[index].endPoint) {
+          newStartPoint = timeLineTracks[index].endPoint;
+        }
+
+        let newTimeLineTracks = timeLineTracks.map((tt, idx) => {
+          if (idx == index) {
+            tt.startPoint = newStartPoint;
+          }
+          return tt;
+        });
+        setTimeLineTracks(newTimeLineTracks);
+      }
+    }
+
+    function onMouseUpTimer() {
+      document.removeEventListener("mousemove", onMouseMoveTimer);
+      document.removeEventListener("mouseup", onMouseUpTimer);
+    }
+  };
+  const endPointDragHandler = (e: React.MouseEvent, index: number) => {
+    setPlaying(false);
+    e.preventDefault();
+    e.stopPropagation();
+    let shiftX = e.clientX - e.currentTarget.getBoundingClientRect().left;
+    document.addEventListener("mousemove", onMouseMoveTimer);
+    document.addEventListener("mouseup", onMouseUpTimer);
+    function onMouseMoveTimer(event: MouseEvent) {
+      if (thumbRef.current) {
+        let newLeft =
+          event.clientX -
+          shiftX -
+          thumbRef.current[index].getBoundingClientRect().left;
+        if (newLeft < 0) {
+          newLeft = 0;
+        }
+        if (newLeft > thumbRef.current[index].offsetWidth) {
+          newLeft = thumbRef.current[index].offsetWidth;
+        }
+        // console.log(newLeft);
+
+        let newEndPoint =
+          (newLeft / thumbRef.current[index].offsetWidth) *
+          timeLineTracks[index].duration;
+        if (newEndPoint < timeLineTracks[index].startPoint) {
+          newEndPoint = timeLineTracks[index].endPoint;
+        }
+
+        let newTimeLineTracks = timeLineTracks.map((tt, idx) => {
+          if (idx == index) {
+            tt.endPoint = newEndPoint;
+          }
+          return tt;
+        });
+        setTimeLineTracks(newTimeLineTracks);
+      }
+    }
+
+    function onMouseUpTimer() {
+      document.removeEventListener("mousemove", onMouseMoveTimer);
+      document.removeEventListener("mouseup", onMouseUpTimer);
+    }
+  };
   // -------------------------------------------------------------------------- $ jsx $ ----------------------------------------------------------------------------------- //
   return (
     <div className="min-h-screen overflow-clip bg-systembgDark-300">
@@ -439,7 +529,9 @@ const Main = (props: IMainProps) => {
             ref={(element: HTMLDivElement) =>
               (wrapperRef.current[index] = element)
             }
-            className={`${index % 2 == 0 ? "bg-systembgDark-200" : ""} py-2 ${index==0 && "mt-10"}`}
+            className={`${index % 2 == 0 ? "bg-systembgDark-200" : ""} py-2 ${
+              index == 0 && "mt-10"
+            }`}
           >
             {/* TimeLine tracks */}
             <div
@@ -453,10 +545,32 @@ const Main = (props: IMainProps) => {
                 width: `${(track.duration * 100) / timeLineDuration}%`,
                 position: "relative",
                 left: `${(track.startTime * 100) / timeLineDuration}%`,
-                backgroundColor: track.color,
+                background: `linear-gradient(to right,#444,#444 ${(track.startPoint * 100) / track.duration}%,${track.color} ${(track.startPoint * 100) / track.duration}%,${track.color} ${(track.endPoint * 100) / track.duration}%,#444 ${(track.endPoint * 100) / track.duration}%)`,
               }}
               className={`group relative flex items-center cursor-pointer rounded-md p-2 min-h-8 flex-1 text-center`}
             >
+              <div
+                draggable={true}
+                onMouseDown={(e: React.MouseEvent) =>
+                  startPointDragHandler(e, index)
+                }
+                onDragStart={() => false}
+                style={{
+                  left: `${(track.startPoint * 100) / track.duration}%`,
+                }}
+                className="absolute cursor-ew-resize h-full border-l-2 border-white"
+              ></div>
+              <div
+                draggable={true}
+                onMouseDown={(e: React.MouseEvent) =>
+                  endPointDragHandler(e, index)
+                }
+                onDragStart={() => false}
+                style={{
+                  left: `${(track.endPoint * 100) / track.duration}%`,
+                }}
+                className="absolute cursor-ew-resize h-full border-l-2 border-white"
+              ></div>
               <div className="self-stretch p-0.5 rounded bg-systembgLight-100"></div>
               <p className="text-xs line-clamp-1 sm:text-sm w-full overflow-hidden text-ellipsis">
                 {track.title}
@@ -474,7 +588,7 @@ const Main = (props: IMainProps) => {
               <Tooltip track={track} />
               <div
                 onClick={(e) => handleRemoveTrack(index)}
-                className="group-hover:block hidden absolute right-0 top-1/2 -translate-y-1/3 size-5 sm:size-6"
+                className="group-hover:block hidden absolute right-0 top-1/2 -translate-y-1/2 size-5 sm:size-6"
               >
                 <Image
                   src="/assets/wrongIcon.svg"

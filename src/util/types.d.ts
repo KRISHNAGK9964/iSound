@@ -8,6 +8,8 @@ type MinimalTrackType = {
 type TrackType = MinimalTrackType & {
   startTime: number;
   endTime: number;
+  startPoint: number;
+  endPoint: number;
 }
 
 type FileType ={
