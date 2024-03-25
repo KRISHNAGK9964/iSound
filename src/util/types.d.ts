@@ -3,6 +3,7 @@ type MinimalTrackType = {
   title: string;
   duration: number;
   source: string;
+  startTime?: number;
 }
 
 type TrackType = MinimalTrackType & {

@@ -18,6 +18,8 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Time from "./Time";
 import TimelineMarks from "./TimelineMarks";
 import Media from "./Media";
+import { Button } from "../ui/button";
+import { randomHexColor } from "@/util/helper";
 
 // Types
 interface IMainProps {}
@@ -61,11 +63,17 @@ const Main = (props: IMainProps) => {
    * @description the following function adds a new track on the TimeLine.
    * @param param0 object containing the data of tracks i.e background color, title, duraton, source url
    */
-  const addTrack = ({ color, title, duration, source }: MinimalTrackType) => {
+  const addTrack = ({
+    color,
+    title,
+    duration,
+    source,
+    startTime = 0,
+  }: MinimalTrackType) => {
     const newTrack = {
       color,
       title,
-      startTime: 0,
+      startTime: startTime,
       endTime: duration,
       duration,
       source,
@@ -74,9 +82,11 @@ const Main = (props: IMainProps) => {
     };
     let newTimeLineDuration = Math.max(
       timeLineDuration,
-      Math.ceil(duration / 30000) * 30000
+      Math.ceil((startTime + duration) / 30000) * 30000
     );
-    changeTimelineDuration(newTimeLineDuration.toString());
+    // console.log(timeLineDuration,newTimeLineDuration);
+    if (timeLineDuration !== newTimeLineDuration)
+      changeTimelineDuration(newTimeLineDuration.toString());
     setTimeLineTracks((old) => [...old, newTrack]);
   };
 
@@ -90,6 +100,7 @@ const Main = (props: IMainProps) => {
   };
 
   const changeTimelineDuration = (value: string) => {
+    // console.log(value);
     setTimeLineDuration(parseInt(value));
   };
   // ----------------------------------------------------------------------- $ audio element handlers $ ------------------------------------------------------------------ //
@@ -135,7 +146,8 @@ const Main = (props: IMainProps) => {
         time <= tt.startTime + tt.endPoint
       ) {
         if (audioRef.current[index].paused) {
-          audioElementArr[index].currentTime = (time - (tt.startTime + tt.startPoint)+tt.startPoint) / 1000;
+          audioElementArr[index].currentTime =
+            (time - (tt.startTime + tt.startPoint) + tt.startPoint) / 1000;
           // console.log(tt.startPoint,audioElementArr[index].currentTime,(time - (tt.startTime + tt.startPoint)));
         }
         state ? (ctr[index] = true) : audioElementArr[index].pause();
@@ -188,6 +200,7 @@ const Main = (props: IMainProps) => {
   useEffect(() => {
     audioRef.current &&
       updatePlaybackRate(speed, timeLineTracks, audioRef.current);
+      window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
   }, [speed, timeLineTracks.length, audioRef.current.length]);
 
   /**
@@ -422,6 +435,23 @@ const Main = (props: IMainProps) => {
       document.removeEventListener("mouseup", onMouseUpTimer);
     }
   };
+
+  const addDemoFiles = async (e: React.SyntheticEvent) => {
+    const demotracks = (await import("@/data/tracks")).tracks.demoTracks;
+    demotracks.forEach((dt, index) => {
+      (function addDemoTrack() {
+        setTimeout(() => {
+          addTrack({
+            color: randomHexColor(),
+            title: dt.title,
+            duration: dt.duration,
+            source: dt.source,
+            startTime: dt.startTime,
+          });
+        }, index * 200);
+      })();
+    });
+  };
   // -------------------------------------------------------------------------- $ jsx $ ----------------------------------------------------------------------------------- //
   return (
     <div className="min-h-screen overflow-clip bg-systembgDark-300">
@@ -438,6 +468,12 @@ const Main = (props: IMainProps) => {
           <Media addTrack={addTrack} GsetFiles={setGfiles} Gfiles={Gfiles} />
         </SheetContent>
       </Sheet>
+      <Button
+        onClick={addDemoFiles}
+        className="bg-[size:400%] bg-[linear-gradient(-45deg,#91a100,#0e5987,#61092b,#ce3000)]  animate-animate-gradient"
+      >
+        Demo
+      </Button>
       <TrackList addTrack={addTrack} />
       {/* controls of the TimeLine i.e time, playback speed, play/pause button */}
       <div className="flex justify-between p-2 select-none items-center">
@@ -545,7 +581,13 @@ const Main = (props: IMainProps) => {
                 width: `${(track.duration * 100) / timeLineDuration}%`,
                 position: "relative",
                 left: `${(track.startTime * 100) / timeLineDuration}%`,
-                background: `linear-gradient(to right,#444,#444 ${(track.startPoint * 100) / track.duration}%,${track.color} ${(track.startPoint * 100) / track.duration}%,${track.color} ${(track.endPoint * 100) / track.duration}%,#444 ${(track.endPoint * 100) / track.duration}%)`,
+                background: `linear-gradient(to right,#444,#444 ${
+                  (track.startPoint * 100) / track.duration
+                }%,${track.color} ${
+                  (track.startPoint * 100) / track.duration
+                }%,${track.color} ${
+                  (track.endPoint * 100) / track.duration
+                }%,#444 ${(track.endPoint * 100) / track.duration}%)`,
               }}
               className={`group relative flex items-center cursor-pointer rounded-md p-2 min-h-8 flex-1 text-center`}
             >
