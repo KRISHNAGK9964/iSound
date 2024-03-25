@@ -47,6 +47,16 @@ export const tracks = {
   demoTracks: [
     {
       color: "#FFCC00FF",
+      title: "CupidVocalOriginal",
+      duration: 178000,
+      source: "/sounds/Vocal.mp3",
+      startTime: 0,
+      startPoint: 24000,
+      endPoint: 39000,
+      endTime: 178000,
+    },
+    {
+      color: "#FFCC00FF",
       title: "Cupid-Original-Vocal-[0-24000]",
       duration: 24000,
       source: "/sounds/Vocal-[0-24000].mp3",
@@ -54,16 +64,6 @@ export const tracks = {
       startPoint: 0,
       endPoint: 24000,
       endTime: 24000,
-    },
-    {
-      color: "#FFCC00FF",
-      title: "Cupid-DuaLipa-Vocal-[24000-39000]",
-      duration: 15000,
-      source: "/sounds/DuaLipa_Vocal-[24000-39000].mp3",
-      startTime: 24000,
-      startPoint: 0,
-      endPoint: 15000,
-      endTime: 39000,
     },
     {
       color: "#FFCC00FF",
@@ -97,6 +97,16 @@ export const tracks = {
     },
     {
       color: "#FFCC00FF",
+      title: "CupidVocalOriginal",
+      duration: 178000,
+      source: "/sounds/Vocal.mp3",
+      startTime: 0,
+      startPoint: 90000,
+      endPoint: 150000,
+      endTime: 178000,
+    },
+    {
+      color: "#FFCC00FF",
       title: "CupidBass",
       duration: 178000,
       source: "/sounds/CupidBass.mp3",
@@ -125,26 +135,5 @@ export const tracks = {
       endPoint: 178000,
       endTime: 178000,
     },
-    {
-      color: "#FFCC00FF",
-      title: "CupidOther",
-      duration: 178000,
-      source: "/sounds/CupidOther.mp3",
-      startTime: 0,
-      startPoint: 0,
-      endPoint: 178000,
-      endTime: 178000,
-    },
-    {
-      color: "#FFCC00FF",
-      title: "CupidVocalOriginal",
-      duration: 178000,
-      source: "/sounds/Vocal.mp3",
-      startTime: 0,
-      startPoint: 0,
-      endPoint: 178000,
-      endTime: 178000,
-    },
-    
   ],
 };

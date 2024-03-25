@@ -69,6 +69,8 @@ const Main = (props: IMainProps) => {
     duration,
     source,
     startTime = 0,
+    startPoint = 0,
+    endPoint = duration,
   }: MinimalTrackType) => {
     const newTrack = {
       color,
@@ -77,8 +79,8 @@ const Main = (props: IMainProps) => {
       endTime: duration,
       duration,
       source,
-      startPoint: 0,
-      endPoint: duration,
+      startPoint,
+      endPoint,
     };
     let newTimeLineDuration = Math.max(
       timeLineDuration,
@@ -200,7 +202,7 @@ const Main = (props: IMainProps) => {
   useEffect(() => {
     audioRef.current &&
       updatePlaybackRate(speed, timeLineTracks, audioRef.current);
-      window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   }, [speed, timeLineTracks.length, audioRef.current.length]);
 
   /**
@@ -254,6 +256,15 @@ const Main = (props: IMainProps) => {
       );
     }
   }, [time]);
+
+  useEffect(() => {
+    if (time == 0) {
+      setPlaying((playing) => !playing);
+      setTimeout(() => {
+        setPlaying((playing) => !playing);
+      }, 0);
+    }
+  }, [playing]);
 
   // ---------------------------------------------------------------- $ event handlers $ ---------------------------------------------------------------------------------- //
 
@@ -447,6 +458,8 @@ const Main = (props: IMainProps) => {
             duration: dt.duration,
             source: dt.source,
             startTime: dt.startTime,
+            startPoint: dt.startPoint,
+            endPoint: dt.endPoint
           });
         }, index * 200);
       })();

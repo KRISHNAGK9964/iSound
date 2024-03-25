@@ -4,6 +4,8 @@ type MinimalTrackType = {
   duration: number;
   source: string;
   startTime?: number;
+  startPoint?: number;
+  endPoint?: number;
 }
 
 type TrackType = MinimalTrackType & {
