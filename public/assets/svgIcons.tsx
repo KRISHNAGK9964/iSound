@@ -124,7 +124,7 @@ export const HeaderSpline = function Spinner(
         id="modern-gray"
         d="M2 120.944C2 120.944 195 122.5 219 120.944C243 119.387 267.716 110.972 283 110.972C323 110.972 341.191 134.27 359.5 148.574C408 186.465 446 86.7525 511 86.7525C576 86.7525 582.5 164.318 625 167.808C675 171.914 735 69.5918 776 69.5918C845.5 69.5918 873 159.831 929 155.843C985 151.854 1029 87.0414 1108 92.027C1187 97.0126 1242 114.961 1286 113.964C1321.2 113.166 1403 116.666 1441 118.66"
         stroke="url(#paint2_linear)"
-        stroke-opacity="0.2"
+        strokeOpacity="0.2"
       />
       <defs>
         <linearGradient
@@ -135,10 +135,10 @@ export const HeaderSpline = function Spinner(
           y2="136.006"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="white" stop-opacity="0" />
-          <stop offset="0.111735" stop-color="white" />
-          <stop offset="0.897073" stop-color="white" />
-          <stop offset="1" stop-color="white" stop-opacity="0" />
+          <stop stopColor="white" stopOpacity="0" />
+          <stop offset="0.111735" stopColor="white" />
+          <stop offset="0.897073" stopColor="white" />
+          <stop offset="1" stopColor="white" stopOpacity="0" />
         </linearGradient>
         <linearGradient
           id="paint1_linear"
@@ -148,10 +148,10 @@ export const HeaderSpline = function Spinner(
           y2="115"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="white" stop-opacity="0" />
-          <stop offset="0.111735" stop-color="#F8D231" />
-          <stop offset="0.897073" stop-color="#F8D231" />
-          <stop offset="1" stop-color="white" stop-opacity="0" />
+          <stop stopColor="white" stopOpacity="0" />
+          <stop offset="0.111735" stopColor="#F8D231" />
+          <stop offset="0.897073" stopColor="#F8D231" />
+          <stop offset="1" stopColor="white" stopOpacity="0" />
         </linearGradient>
         <linearGradient
           id="paint2_linear"
@@ -161,10 +161,10 @@ export const HeaderSpline = function Spinner(
           y2="143.716"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="white" stop-opacity="0" />
-          <stop offset="0.111735" stop-color="white" />
-          <stop offset="0.897073" stop-color="white" />
-          <stop offset="1" stop-color="white" stop-opacity="0" />
+          <stop stopColor="white" stopOpacity="0" />
+          <stop offset="0.111735" stopColor="white" />
+          <stop offset="0.897073" stopColor="white" />
+          <stop offset="1" stopColor="white" stopOpacity="0" />
         </linearGradient>
       </defs>
       <animate

@@ -106,7 +106,7 @@ const Main = (props: IMainProps) => {
   };
 
   const changeTimelineDuration = (value: string) => {
-    // console.log(value);
+    setPlaying(false);
     setTimeLineDuration(parseInt(value));
   };
   // ----------------------------------------------------------------------- $ audio element handlers $ ------------------------------------------------------------------ //
