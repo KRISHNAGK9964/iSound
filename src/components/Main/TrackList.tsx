@@ -21,7 +21,7 @@ const TrackList : React.FC<TrackListProps> = ( {addTrack} ) => {
             }
             key={index}
             style={{ backgroundColor: track.color }}
-            className={`group hover:scale-110 transition-all cursor-pointer select-none max-w-80 rounded-md p-2 flex-1 text-center `}
+            className={`group text-xs md:text-sm lg:text-base hover:scale-110 transition-all cursor-pointer select-none max-w-80 rounded-md p-2 flex-1 text-center `}
           >
             {track.title}
             <Tooltip track={track}/>

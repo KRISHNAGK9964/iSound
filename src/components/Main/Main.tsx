@@ -473,35 +473,37 @@ const Main = (props: IMainProps) => {
   return (
     <div className="min-h-screen overflow-clip bg-systembgDark-300">
       {/* header */}
-      <header className="relative h-[237px] text-center text-xl flex justify-center items-center text-systembgLight-100">
-        <HeaderSpline className="w-screen absolute" />
+      <header className="relative aspect-[1442/237] text-center text-xl flex justify-center items-center text-systembgLight-100">
+        <HeaderSpline className="w-screen absolute h-auto" />
         ⌘iSound
       </header>
       {/* tracks */}
-      <Sheet>
-        <SheetTrigger className="text-systembgLight-300 bg-systembgDark-200 p-1 px-2 rounded-md w-fit relative left-1/2 -translate-x-1/2 mb-5">
-          My Media
-        </SheetTrigger>
-        <SheetContent className="overflow-auto p-0 lg:max-w-screen-md">
-          <Media addTrack={addTrack} GsetFiles={setGfiles} Gfiles={Gfiles} />
-        </SheetContent>
-      </Sheet>
-      <Button
-        onClick={addDemoFiles}
-        className="bg-[size:400%] bg-[linear-gradient(-45deg,#91a100,#0e5987,#61092b,#ce3000)]  animate-animate-gradient"
-      >
-        Demo
-      </Button>
+      <div className="flex mb-5 justify-around">
+        <Button
+          onClick={addDemoFiles}
+          className="bg-[size:400%] bg-[linear-gradient(-45deg,#91a100,#0e5987,#61092b,#ce3000)]  animate-animate-gradient text-xs md:text-sm lg:text-base"
+        >
+          Demo
+        </Button>
+        <Sheet>
+          <SheetTrigger className="text-xs md:text-sm lg:text-base text-systembgLight-300 bg-systembgDark-200 p-1 px-2 rounded-md w-fit">
+            My Media
+          </SheetTrigger>
+          <SheetContent className="overflow-auto p-0 lg:max-w-screen-md">
+            <Media addTrack={addTrack} GsetFiles={setGfiles} Gfiles={Gfiles} />
+          </SheetContent>
+        </Sheet>
+      </div>
       <TrackList addTrack={addTrack} />
       {/* controls of the TimeLine i.e time, playback speed, play/pause button */}
       <div className="flex justify-between p-2 select-none items-center">
-        <div className="flex-1 flex items-center text-systembgLight-200">
-          <span>Time: </span> <Time time={time} /> /
+        <div className="text-xs md:text-sm lg:text-base flex-1 flex items-center text-systembgLight-200">
+          <span className="">Time: </span> <Time time={time} /> /
           <Select
             value={timeLineDuration.toString()}
             onValueChange={changeTimelineDuration}
           >
-            <SelectTrigger className="border-none py-1 px-1 text-base h-fit w-fit focus:ring-0 hover:bg-systembgDark-100">
+            <SelectTrigger className="border-none p-0 text-xs md:text-sm lg:text-base h-fit w-fit focus:ring-0 hover:bg-systembgDark-100">
               <SelectValue>
                 <Time time={timeLineDuration} />
               </SelectValue>
@@ -538,18 +540,18 @@ const Main = (props: IMainProps) => {
           {!playing ? (
             <PlayIcon
               onClick={handlePlayPause}
-              className="w-6 h-6 hover:scale-125 transition-all duration-500 text-systembgLight-300 rounded-full bg-systembgDark-100 p-1"
+              className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6 hover:scale-125 transition-all duration-500 text-systembgLight-300 rounded-full bg-systembgDark-100 p-1"
             />
           ) : (
             <PauseIcon
               onClick={handlePlayPause}
-              className="text-systembgLight-300 w-6 h-6 rounded-full bg-systembgDark-100 p-1 hover:scale-125 transition-all duration-500"
+              className="text-systembgLight-300 w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6 rounded-full bg-systembgDark-100 p-1 hover:scale-125 transition-all duration-500"
             />
           )}
         </div>
         <div
           onClick={handleSpeed}
-          className="cursor-pointer select-none text-sm bg-systembgDark-200 hover:bg-systembgDark-100 rounded px-2 p-0.5 text-systembgLight-300"
+          className="cursor-pointer select-none text-xs md:text-sm lg:text-base bg-systembgDark-200 hover:bg-systembgDark-100 rounded px-2 p-0.5 text-systembgLight-300"
         >
           {speed}x
         </div>
@@ -557,7 +559,7 @@ const Main = (props: IMainProps) => {
       {/* TimeLine container */}
       <div
         ref={timeLineRef}
-        className="w-[calc(100vw-2rem)] overflow-y-clip overflow-x-visible flex flex-col gap-2 py-4 min-h-16 relative"
+        className="w-100vw md:w-[calc(100vw-2rem)] overflow-y-clip overflow-x-visible flex flex-col gap-2 py-4 min-h-16 relative"
       >
         <div className="absolute w-[calc(100%+1px)] h-full border-r border-[#565656]">
           <TimelineMarks time={timeLineDuration / 1000} />
