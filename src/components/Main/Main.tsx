@@ -3,7 +3,11 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/legacy/image";
 
 // internal modules/ components / ui
-import { PauseIcon, PlayIcon } from "../../../public/assets/svgIcons";
+import {
+  HeaderSpline,
+  PauseIcon,
+  PlayIcon,
+} from "../../../public/assets/svgIcons";
 import TrackList from "./TrackList";
 import Tooltip from "../ui/Tooltip";
 import {
@@ -459,7 +463,7 @@ const Main = (props: IMainProps) => {
             source: dt.source,
             startTime: dt.startTime,
             startPoint: dt.startPoint,
-            endPoint: dt.endPoint
+            endPoint: dt.endPoint,
           });
         }, index * 200);
       })();
@@ -469,7 +473,8 @@ const Main = (props: IMainProps) => {
   return (
     <div className="min-h-screen overflow-clip bg-systembgDark-300">
       {/* header */}
-      <header className="p-10 text-center text-xl flex justify-center text-systembgLight-100">
+      <header className="relative h-[237px] text-center text-xl flex justify-center items-center text-systembgLight-100">
+        <HeaderSpline className="w-screen absolute" />
         ⌘iSound
       </header>
       {/* tracks */}
