@@ -105,6 +105,25 @@ const Main = (props: IMainProps) => {
     setTimeLineTracks(newTracks);
   };
 
+  const addDemoFiles = async (e: React.SyntheticEvent) => {
+    const demotracks = (await import("@/data/tracks")).tracks.demoTracks;
+    demotracks.forEach((dt, index) => {
+      (function addDemoTrack() {
+        setTimeout(() => {
+          addTrack({
+            color: randomHexColor(),
+            title: dt.title,
+            duration: dt.duration,
+            source: dt.source,
+            startTime: dt.startTime,
+            startPoint: dt.startPoint,
+            endPoint: dt.endPoint,
+          });
+        }, index * 200);
+      })();
+    });
+  };
+
   const changeTimelineDuration = (value: string) => {
     setPlaying(false);
     setTimeLineDuration(parseInt(value));
@@ -278,6 +297,8 @@ const Main = (props: IMainProps) => {
    * @param index it is the index of the track on which the event is fired.
    */
   const handler = (event: React.MouseEvent, index: number) => {
+    console.log("Drag pill");
+
     event.preventDefault(); // prevent selection start (browser action).
 
     let shiftX =
@@ -328,11 +349,56 @@ const Main = (props: IMainProps) => {
     }
   };
 
+  const TouchPillhandler = (event : React.TouchEvent , index:number) => {
+    console.log("Touch Pill");
+    const touch = event.touches[0];
+    const shiftX = touch.clientX - event.currentTarget.getBoundingClientRect().left;
+    document.addEventListener("touchmove",onTouchmove);
+    document.addEventListener("touchend",onTouchend);
+
+    function onTouchmove(e: TouchEvent){
+      const touch = e.touches[0];
+      let newLeft = touch.clientX - shiftX - wrapperRef.current[index].getBoundingClientRect().left;
+
+      if (newLeft < 0) {
+        newLeft = 0;
+      }
+      let rightEdge =
+        wrapperRef.current[index].offsetWidth -
+        thumbRef.current[index].offsetWidth;
+      if (newLeft > rightEdge) {
+        newLeft = rightEdge;
+      }
+
+      let newTimeLineTracks = timeLineTracks.map((tt, idx) => {
+        if (idx == index) {
+          tt.startTime =
+            (newLeft / wrapperRef?.current[index].offsetWidth) *
+            timeLineDuration;
+          if (tt.startTime <= time && time <= tt.startTime + tt.duration) {
+            audioRef.current[index].currentTime = (time - tt.startTime) / 1000;
+          } else {
+            audioRef.current[index].currentTime = 0;
+            audioRef.current[index].pause();
+          }
+        }
+        return tt;
+      });
+      setTimeLineTracks(newTimeLineTracks);
+    }
+
+    function onTouchend(e: TouchEvent){
+      document.removeEventListener("touchend",onTouchend);
+      document.removeEventListener("touchmove",onTouchmove);
+    }
+
+  }
   /**
    * @description the following function/eventHandler provides dragging and dropping for the timeline thumb by calculating the distance from the TimeLine container left edge to the left edge of the thumb.
    * @param e React MouseDown event on the TimeLine thumb present in the TimeLine.
    */
   const TimerDragHandler = (e: React.MouseEvent) => {
+    console.log("Drag timer");
     setPlaying(false);
     e.preventDefault();
     let shiftX = e.clientX - e.currentTarget.getBoundingClientRect().left;
@@ -367,10 +433,47 @@ const Main = (props: IMainProps) => {
     }
   };
 
-  const startPointDragHandler = (e: React.MouseEvent, index: number) => {
+  const TouchTimerDragHandler = (e: React.TouchEvent) => {
+    console.log("Touch timer");
     setPlaying(false);
+    const touch = e.touches[0];
+    let shiftX = touch.clientX - e.currentTarget.getBoundingClientRect().left;
+    document.addEventListener("touchmove", onTouchMoveTimer);
+    document.addEventListener("touchend", onTouchEndTimer);
+
+    function onTouchMoveTimer(event: TouchEvent) {
+      if (timeLineRef.current && timeRef.current) {
+        const touch = event.touches[0];
+        let newLeft =
+          touch.clientX -
+          shiftX -
+          timeLineRef.current?.getBoundingClientRect().left;
+        if (newLeft < 0) {
+          newLeft = 0;
+        }
+
+        let rightEdge =
+          timeLineRef.current?.offsetWidth - timeRef.current?.offsetWidth;
+        if (newLeft > rightEdge) {
+          newLeft = rightEdge;
+        }
+
+        let newTime =
+          (newLeft / timeLineRef.current?.offsetWidth) * timeLineDuration;
+        setTime(newTime);
+      }
+    }
+
+    function onTouchEndTimer() {
+      document.removeEventListener("touchmove", onTouchMoveTimer);
+      document.removeEventListener("touchend", onTouchEndTimer);
+    }
+  };
+  const startPointDragHandler = (e: React.MouseEvent, index: number) => {
+    console.log("Drag startpoint");
     e.preventDefault();
     e.stopPropagation();
+    setPlaying(false);
     let shiftX = e.clientX - e.currentTarget.getBoundingClientRect().left;
     document.addEventListener("mousemove", onMouseMoveTimer);
     document.addEventListener("mouseup", onMouseUpTimer);
@@ -407,10 +510,53 @@ const Main = (props: IMainProps) => {
       document.removeEventListener("mouseup", onMouseUpTimer);
     }
   };
-  const endPointDragHandler = (e: React.MouseEvent, index: number) => {
+  const TouchstartPointDragHandler = (e: React.TouchEvent, index: number) => {
+    console.log("Touch start point");
+    e.stopPropagation();
     setPlaying(false);
+    const touch = e.touches[0]
+    let shiftX = touch.clientX - e.currentTarget.getBoundingClientRect().left;
+    document.addEventListener("touchmove", onTouchMoveTimer);
+    document.addEventListener("touchend", onTouchendTimer);
+    function onTouchMoveTimer(event: TouchEvent) {
+      if (thumbRef.current) {
+        const touch = event.touches[0];
+        let newLeft =
+          touch.clientX -
+          shiftX -
+          thumbRef.current[index].getBoundingClientRect().left;
+        if (newLeft < 0) {
+          newLeft = 0;
+        }
+        // console.log(newLeft);
+
+        let newStartPoint =
+          (newLeft / thumbRef.current[index].offsetWidth) *
+          timeLineTracks[index].duration;
+        if (newStartPoint > timeLineTracks[index].endPoint) {
+          newStartPoint = timeLineTracks[index].endPoint;
+        }
+
+        let newTimeLineTracks = timeLineTracks.map((tt, idx) => {
+          if (idx == index) {
+            tt.startPoint = newStartPoint;
+          }
+          return tt;
+        });
+        setTimeLineTracks(newTimeLineTracks);
+      }
+    }
+
+    function onTouchendTimer() {
+      document.removeEventListener("touchmove", onTouchMoveTimer);
+      document.removeEventListener("mouseup", onTouchendTimer);
+    }
+  };
+  const endPointDragHandler = (e: React.MouseEvent, index: number) => {
+    console.log("Drag endPoint");
     e.preventDefault();
     e.stopPropagation();
+    setPlaying(false);
     let shiftX = e.clientX - e.currentTarget.getBoundingClientRect().left;
     document.addEventListener("mousemove", onMouseMoveTimer);
     document.addEventListener("mouseup", onMouseUpTimer);
@@ -450,25 +596,53 @@ const Main = (props: IMainProps) => {
       document.removeEventListener("mouseup", onMouseUpTimer);
     }
   };
+  const TouchendPointDragHandler = (e: React.TouchEvent, index: number) => {
+    console.log("Touch end point");
+    e.stopPropagation();
+    setPlaying(false);
+    const touch = e.touches[0];
+    let shiftX = touch.clientX - e.currentTarget.getBoundingClientRect().left;
+    document.addEventListener("touchmove", onTouchMoveTimer);
+    document.addEventListener("touchend", onTouchendTimer);
+    function onTouchMoveTimer(event: TouchEvent) {
+      if (thumbRef.current) {
+        const touch = event.touches[0];
+        let newLeft =
+          touch.clientX -
+          shiftX -
+          thumbRef.current[index].getBoundingClientRect().left;
+        if (newLeft < 0) {
+          newLeft = 0;
+        }
+        if (newLeft > thumbRef.current[index].offsetWidth) {
+          newLeft = thumbRef.current[index].offsetWidth;
+        }
+        // console.log(newLeft);
 
-  const addDemoFiles = async (e: React.SyntheticEvent) => {
-    const demotracks = (await import("@/data/tracks")).tracks.demoTracks;
-    demotracks.forEach((dt, index) => {
-      (function addDemoTrack() {
-        setTimeout(() => {
-          addTrack({
-            color: randomHexColor(),
-            title: dt.title,
-            duration: dt.duration,
-            source: dt.source,
-            startTime: dt.startTime,
-            startPoint: dt.startPoint,
-            endPoint: dt.endPoint,
-          });
-        }, index * 200);
-      })();
-    });
+        let newEndPoint =
+          (newLeft / thumbRef.current[index].offsetWidth) *
+          timeLineTracks[index].duration;
+        if (newEndPoint < timeLineTracks[index].startPoint) {
+          newEndPoint = timeLineTracks[index].endPoint;
+        }
+
+        let newTimeLineTracks = timeLineTracks.map((tt, idx) => {
+          if (idx == index) {
+            tt.endPoint = newEndPoint;
+          }
+          return tt;
+        });
+        setTimeLineTracks(newTimeLineTracks);
+      }
+    }
+
+    function onTouchendTimer() {
+      document.removeEventListener("touchmove", onTouchMoveTimer);
+      document.removeEventListener("touchend", onTouchendTimer);
+    }
   };
+
+  
   // -------------------------------------------------------------------------- $ jsx $ ----------------------------------------------------------------------------------- //
   return (
     <div className="min-h-screen overflow-clip bg-systembgDark-300">
@@ -521,17 +695,17 @@ const Main = (props: IMainProps) => {
                 disabled={
                   timeLineTracks.findIndex((tt) => tt.duration >= 60000) >= 0
                 }
-                value="60000"
+                value={`${Math.max(timeLineDuration - 30000,60000)}`}
               >
-                1min
+                {`${Math.max(timeLineDuration - 30000,60000)/60000}m`}
               </SelectItem>
               <SelectItem
                 disabled={
                   timeLineTracks.findIndex((tt) => tt.duration >= 120000) >= 0
                 }
-                value="120000"
+                value={`${timeLineDuration + 60000}`}
               >
-                2min
+                {`${(timeLineDuration + 60000)/60000}m`}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -540,12 +714,12 @@ const Main = (props: IMainProps) => {
           {!playing ? (
             <PlayIcon
               onClick={handlePlayPause}
-              className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6 hover:scale-125 transition-all duration-500 text-systembgLight-300 rounded-full bg-systembgDark-100 p-1"
+              className="w-6 h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 transition-all duration-500 text-systembgLight-300 rounded-full bg-systembgDark-100 p-1"
             />
           ) : (
             <PauseIcon
               onClick={handlePlayPause}
-              className="text-systembgLight-300 w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6 rounded-full bg-systembgDark-100 p-1 hover:scale-125 transition-all duration-500"
+              className="text-systembgLight-300 w-6 h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 rounded-full bg-systembgDark-100 p-1 transition-all duration-500"
             />
           )}
         </div>
@@ -570,8 +744,9 @@ const Main = (props: IMainProps) => {
           onMouseDown={TimerDragHandler}
           draggable={true}
           onDragStart={() => false}
+          onTouchStart={TouchTimerDragHandler}
           style={{ left: `${(time * 100) / timeLineDuration}%` }}
-          className="transition-all duration-100 -translate-y-4 z-10 cursor-pointer absolute h-[calc(100%)] flex flex-col items-center"
+          className="transition-all touch-none duration-100 -translate-y-4 z-10 cursor-pointer absolute h-[calc(100%)] flex flex-col items-center"
         >
           <div className="absolute z-10 p-1 rounded-xl bg-systemTintLight-indigo text-xs text-systemGbgDark-300">
             <Time time={time} />
@@ -596,7 +771,9 @@ const Main = (props: IMainProps) => {
               }
               draggable={true}
               onMouseDown={(e: React.MouseEvent) => handler(e, index)}
+              onTouchStart={(e: React.TouchEvent) => TouchPillhandler(e, index)}
               onDragStart={() => false}
+
               style={{
                 width: `${(track.duration * 100) / timeLineDuration}%`,
                 position: "relative",
@@ -609,7 +786,7 @@ const Main = (props: IMainProps) => {
                   (track.endPoint * 100) / track.duration
                 }%,#444 ${(track.endPoint * 100) / track.duration}%)`,
               }}
-              className={`group relative flex items-center cursor-pointer rounded-md p-2 min-h-8 flex-1 text-center`}
+              className={`group touch-none relative flex items-center cursor-pointer rounded-md p-2 min-h-8 flex-1 text-center`}
             >
               <div
                 draggable={true}
@@ -617,6 +794,7 @@ const Main = (props: IMainProps) => {
                   startPointDragHandler(e, index)
                 }
                 onDragStart={() => false}
+                onTouchStart={(e: React.TouchEvent) => TouchstartPointDragHandler(e,index)}
                 style={{
                   left: `${(track.startPoint * 100) / track.duration}%`,
                 }}
@@ -627,6 +805,7 @@ const Main = (props: IMainProps) => {
                 onMouseDown={(e: React.MouseEvent) =>
                   endPointDragHandler(e, index)
                 }
+                onTouchStart={(e:React.TouchEvent) => TouchendPointDragHandler(e,index)}
                 onDragStart={() => false}
                 style={{
                   left: `${(track.endPoint * 100) / track.duration}%`,
@@ -650,7 +829,7 @@ const Main = (props: IMainProps) => {
               <Tooltip track={track} />
               <div
                 onClick={(e) => handleRemoveTrack(index)}
-                className="group-hover:block hidden absolute right-0 top-1/2 -translate-y-1/2 size-5 sm:size-6"
+                className="group-hover:block touch-none hidden absolute right-0 top-1/2 -translate-y-1/2 size-5 sm:size-6"
               >
                 <Image
                   src="/assets/wrongIcon.svg"
