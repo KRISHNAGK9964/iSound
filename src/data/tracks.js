@@ -101,7 +101,7 @@ export const tracks = {
       duration: 178000,
       source: "/sounds/Vocal.mp3",
       startTime: 0,
-      startPoint: 72000,
+      startPoint: 87000,
       endPoint: 150000,
       endTime: 178000,
     },
