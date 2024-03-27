@@ -693,7 +693,7 @@ const Main = (props: IMainProps) => {
               </SelectItem>
               <SelectItem
                 disabled={
-                  timeLineTracks.findIndex((tt) => tt.duration >= 60000) >= 0
+                  timeLineTracks.findIndex((tt) => tt.duration >= Math.max(timeLineDuration - 30000,60000)) >= 0
                 }
                 value={`${Math.max(timeLineDuration - 30000,60000)}`}
               >
@@ -701,7 +701,7 @@ const Main = (props: IMainProps) => {
               </SelectItem>
               <SelectItem
                 disabled={
-                  timeLineTracks.findIndex((tt) => tt.duration >= 120000) >= 0
+                  timeLineTracks.findIndex((tt) => tt.duration >= timeLineDuration + 60000) >= 0
                 }
                 value={`${timeLineDuration + 60000}`}
               >
